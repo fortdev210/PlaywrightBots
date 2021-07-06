@@ -1,0 +1,78 @@
+# python byte code files
+*.pyc
+
+# Macosx files
+.[dD][sS]_[Ss]tore
+
+# Coverage files
+.coverage
+.coverage.*
+htmlcov/*
+.stlpro.coverage
+
+# Environment files
+*.env
+venv/
+
+# pycharm
+.idea
+
+# Static files
+htdocs/*
+
+# Newrelic config file
+newrelic.ini
+
+# sql files
+*.sql
+
+# Test files
+*.csv
+*.txt
+joe.py
+note
+*.tar.gz
+*.gz
+*.log
+*.pickle
+logs/
+scripts/dumpdb.sh
+
+# Web spider db
+webspiders/dbs/default.db
+webspiders/twistd.pid
+
+# Celery
+celerybeat-schedule.db
+/dump.rdb
+
+# Visual Studio Code
+.vscode
+vandelay-py.js
+
+!/tests/unit/fixtures/email/order_confirmation/*.json
+!/tests/unit/fixtures/email/delivery_confirmation/*.json
+!/tests/unit/fixtures/email/shipment_confirmation/*.json
+!/tests/unit/fixtures/email/yahoo/*.json
+!/tests/unit/fixtures/simple_text.txt
+
+__pycache__/
+hooks/__pycache__/
+libs/filters/buyer/
+myproject/settings/parameters/local.env
+gmail/
+
+
+# Luminati backups
+luminati.config.backup
+luminati.config.*
+celerybeat.pid
+.luminati.json
+
+# Scraper output
+webspiders/archive/*
+webspiders/tmp/*
+
+# Node modules
+package.json
+package-lock.json
