@@ -48,7 +48,7 @@ def update_ds_order(ds_order_id, data):
         headers={
             "Authorization": "Basic " + base64.b64encode(b'buybot:forte1long').decode()  # NOQA
         },
-        json={'data': data}
+        json={'data': data, 'confirmed_by': 5}
     )
     return response.json()
 
