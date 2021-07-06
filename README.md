@@ -1,8 +1,8 @@
 # Setup
 
 ```bash
-git git@gitlab.com:or/repo.git
-cd obpharma
+git git@github.com:STLPROINC/PlaywrightBots.git
+cd PlaywrightBots
 
 # Create a virtualenv here named venv (strongly suggested)
 virtualenv venv

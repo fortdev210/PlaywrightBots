@@ -1,12 +1,14 @@
-import random
-import re
-import time
 import sys
+import time
+import random
 
 from playwright.sync_api import sync_playwright
-from utils import LOGGER, get_ds_orders, update_ds_order
-
-getDsOrdersUrl = "https://admin.stlpro.com/v2/ds_order/scrape_order_status/?supplier_id=W"  # NOQA
+from settings import (
+    LOGGER, WALMART, LUMINATI_PASSWORD, LUMINATI_DOMAIN,
+    LUMINATI_USERNAME, WM_CURRENT_PASSWORD, WM_OLD_PASSWORD
+)
+from libs.walmart import try_to_scrape
+from libs.utils import get_ds_orders, update_ds_order
 
 
 def run(playwright, order):
@@ -15,9 +17,9 @@ def run(playwright, order):
     browser = chromium.launch(
         headless=False,
         proxy={
-            "server": "zproxy.lum-superproxy.io:22225",
-            "username": "lum-customer-c_62f63918-zone-residential2-country-us",
-            "password": "bf1b7c15d2de"
+            "server": LUMINATI_DOMAIN,
+            "username": LUMINATI_USERNAME,
+            "password": LUMINATI_PASSWORD
         }
     )
     try:
@@ -26,32 +28,9 @@ def run(playwright, order):
         # Subscribe to "request" and "response" events.
         # page.on("request", lambda request: print(">>", request.method, request.url))  # NOQA
         # page.on("response", lambda response: print("<<", response.status, response.url))  # NOQA
-        urls = [
-            'https://www.walmart.com/account/login',
-            'https://www.walmart.com/account/login?tid=0&returnUrl=%2F',
-            'https://www.walmart.com/account/login?tid=0&returnUrl=%2Fcp%2Felectronics%2F3944',  # NOQA
-            'https://www.walmart.com/account/login?tid=0&returnUrl=%2Fbrowse%2Felectronics%2Ftouchscreen-laptops%2F3944_3951_1089430_1230091_1101633',  # NOQA
-            'https://www.walmart.com/account/login?tid=0&returnUrl=%2Flists',
-            'https://www.walmart.com/account/login?tid=0&returnUrl=%2Feasyreorder%3FeroType%3Dlist',  # NOQA
-
-        ]
-        url = random.choice(urls)
-        page.goto(url)
-        page.wait_for_timeout(5000)
-        email = order['email'] or order['username']
-        page.fill("input[id=email]", email)
-        page.wait_for_timeout(1000)
-        page.fill("input[id=password]", 'Forte1long!')
-        page.wait_for_timeout(1000)
-        page.click("button[type=submit]")
-        page.wait_for_timeout(5000)
-        try:
-            page.goto('https://www.walmart.com/account/wmpurchasehistory', wait_until="networkidle")  # NOQA
-        except:
-            pass
-        page.wait_for_timeout(5000)
-        pattern = re.search("window.__WML_REDUX_INITIAL_STATE__ = (.*?);<\/script>", page.content())  # NOQA
-        data = pattern[0].replace('window.__WML_REDUX_INITIAL_STATE__ = ', '').replace(';</script>', '')  # NOQA
+        data = try_to_scrape(order, page, WM_CURRENT_PASSWORD)
+        if "signInWidget" in data:
+            data = try_to_scrape(order, page, WM_OLD_PASSWORD)
         result = update_ds_order(order['id'], data)
         LOGGER.info(result)
     except Exception as ex:
@@ -67,7 +46,7 @@ if __name__ == "__main__":
     start = int(sys.argv[1])
     end = int(sys.argv[2])
     while True:
-        orders = get_ds_orders(getDsOrdersUrl)
+        orders = get_ds_orders(supplier_id=WALMART)
         orders = orders[start:end]
         random.shuffle(orders)
         for order in orders:
