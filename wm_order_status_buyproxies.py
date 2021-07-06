@@ -8,7 +8,7 @@ from utils import LOGGER, get_ds_orders, update_ds_order, get_ips
 
 
 getDsOrdersUrl = "https://admin.stlpro.com/v2/ds_order/scrape_order_status/?supplier_id=W"  # NOQA
-getProxiesUrl = "https://admin.stlpro.com/v2/ip_supplier/?is_potential_banned=false&is_buyproxies_ip=true&supplier=W&limit=500"  # NOQA
+getProxiesUrl = "https://admin.stlpro.com/v2/ip_supplier/?is_potential_banned=false&is_buyproxies_ip=true&supplier=W&limit=500&batch_id=order_status"  # NOQA
 
 
 def try_to_scrape(order, page, password):
