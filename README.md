@@ -27,3 +27,7 @@ cd .git/hooks
 # add pre-commit hook
 ln -s ../../hooks/pre-commit
 ```
+
+## Run
+
+`python order_status_buyproxies.py 0 20`

@@ -1,42 +1,16 @@
 import random
-import requests
 import re
-import base64
-import json
 import time
 import sys
 
 from playwright.sync_api import sync_playwright
-
+from utils import LOGGER, get_ds_orders, update_ds_order
 
 getDsOrdersUrl = "https://admin.stlpro.com/v2/ds_order/scrape_order_status/?supplier_id=W"
-updateDsOrderInfoUrl = "https://admin.stlpro.com/v2/ds_order/"
-
-
-def get_ds_orders():
-    url = getDsOrdersUrl
-    response = requests.get(
-        url,
-        headers={
-            "Authorization": "Basic " + base64.b64encode(b'buybot:forte1long').decode()
-        }
-    )
-    return response.json()
-
-
-def update_ds_order(ds_order_id, data):
-    url = updateDsOrderInfoUrl + str(ds_order_id) + "/update_order_status_scraped_result/";
-    response = requests.post(
-        url,
-        headers={
-            "Authorization": "Basic " + base64.b64encode(b'buybot:forte1long').decode()
-        },
-        json={'data': data}
-    )
-    return response.json()
 
 
 def run(playwright, order):
+    LOGGER.info(order)
     chromium = playwright.chromium
     browser = chromium.launch(
         headless=False,
@@ -78,22 +52,27 @@ def run(playwright, order):
         page.wait_for_timeout(5000)
         pattern = re.search("window.__WML_REDUX_INITIAL_STATE__ = (.*?);<\/script>", page.content())
         data = pattern[0].replace('window.__WML_REDUX_INITIAL_STATE__ = ', '').replace(';</script>', '')
-        print(update_ds_order(order['id'], data))
+        result = update_ds_order(order['id'], data)
+        if result['status'] == 'success':
+            LOGGER.info("Success: " + order['supplier_order_numbers_str'])
     except Exception as ex:
-        print(ex)
+        LOGGER.exception(ex, exc_info=True)
+        LOGGER.error("Failed: " + order['supplier_order_numbers_str'])
 
     browser.close()
+    LOGGER.info('======================= End ==========================')
+    return
 
 
 if __name__ == "__main__":
     start = int(sys.argv[1])
     end = int(sys.argv[2])
     while True:
-        orders = get_ds_orders()
+        orders = get_ds_orders(getDsOrdersUrl)
         orders = orders[start:end]
         random.shuffle(orders)
         for order in orders:
-            print(order)
+            LOGGER.info('======================= Start ==========================')
             with sync_playwright() as playwright:
                 run(playwright, order)
             time.sleep(5)
