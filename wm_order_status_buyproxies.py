@@ -71,8 +71,7 @@ def run(playwright, order, ip):
         if "signInWidget" in data:
             data = try_to_scrape(order, page, 'forte1long')
         result = update_ds_order(order['id'], data)
-        if result['status'] == 'success':
-            LOGGER.info("Success: " + order['supplier_order_numbers_str'])
+        LOGGER.info(result)
     except Exception as ex:
         LOGGER.exception(ex, exc_info=True)
         LOGGER.error("Failed: " + order['supplier_order_numbers_str'])
@@ -94,7 +93,7 @@ if __name__ == "__main__":
             random.shuffle(ips)
             random_ips = ips[:2]
             for ip in random_ips:
-                order.update(**ip)
+                order['ip'] = ip
                 with sync_playwright() as playwright:
                     if run(playwright, order, ip):
                         break

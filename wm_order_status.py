@@ -6,7 +6,7 @@ import sys
 from playwright.sync_api import sync_playwright
 from utils import LOGGER, get_ds_orders, update_ds_order
 
-getDsOrdersUrl = "https://admin.stlpro.com/v2/ds_order/scrape_order_status/?supplier_id=W"
+getDsOrdersUrl = "https://admin.stlpro.com/v2/ds_order/scrape_order_status/?supplier_id=W"  # NOQA
 
 
 def run(playwright, order):
@@ -24,15 +24,15 @@ def run(playwright, order):
         page = browser.new_page()
         page.set_default_navigation_timeout(60 * 1000)
         # Subscribe to "request" and "response" events.
-        # page.on("request", lambda request: print(">>", request.method, request.url))
-        # page.on("response", lambda response: print("<<", response.status, response.url))
+        # page.on("request", lambda request: print(">>", request.method, request.url))  # NOQA
+        # page.on("response", lambda response: print("<<", response.status, response.url))  # NOQA
         urls = [
             'https://www.walmart.com/account/login',
             'https://www.walmart.com/account/login?tid=0&returnUrl=%2F',
-            'https://www.walmart.com/account/login?tid=0&returnUrl=%2Fcp%2Felectronics%2F3944',
-            'https://www.walmart.com/account/login?tid=0&returnUrl=%2Fbrowse%2Felectronics%2Ftouchscreen-laptops%2F3944_3951_1089430_1230091_1101633',
+            'https://www.walmart.com/account/login?tid=0&returnUrl=%2Fcp%2Felectronics%2F3944',  # NOQA
+            'https://www.walmart.com/account/login?tid=0&returnUrl=%2Fbrowse%2Felectronics%2Ftouchscreen-laptops%2F3944_3951_1089430_1230091_1101633',  # NOQA
             'https://www.walmart.com/account/login?tid=0&returnUrl=%2Flists',
-            'https://www.walmart.com/account/login?tid=0&returnUrl=%2Feasyreorder%3FeroType%3Dlist',
+            'https://www.walmart.com/account/login?tid=0&returnUrl=%2Feasyreorder%3FeroType%3Dlist',  # NOQA
 
         ]
         url = random.choice(urls)
@@ -46,21 +46,20 @@ def run(playwright, order):
         page.click("button[type=submit]")
         page.wait_for_timeout(5000)
         try:
-            page.goto('https://www.walmart.com/account/wmpurchasehistory', wait_until="networkidle")
+            page.goto('https://www.walmart.com/account/wmpurchasehistory', wait_until="networkidle")  # NOQA
         except:
             pass
         page.wait_for_timeout(5000)
-        pattern = re.search("window.__WML_REDUX_INITIAL_STATE__ = (.*?);<\/script>", page.content())
-        data = pattern[0].replace('window.__WML_REDUX_INITIAL_STATE__ = ', '').replace(';</script>', '')
+        pattern = re.search("window.__WML_REDUX_INITIAL_STATE__ = (.*?);<\/script>", page.content())  # NOQA
+        data = pattern[0].replace('window.__WML_REDUX_INITIAL_STATE__ = ', '').replace(';</script>', '')  # NOQA
         result = update_ds_order(order['id'], data)
-        if result['status'] == 'success':
-            LOGGER.info("Success: " + order['supplier_order_numbers_str'])
+        LOGGER.info(result)
     except Exception as ex:
         LOGGER.exception(ex, exc_info=True)
         LOGGER.error("Failed: " + order['supplier_order_numbers_str'])
 
     browser.close()
-    LOGGER.info('======================= End ==========================')
+    LOGGER.info('================== End ==================')
     return
 
 
@@ -72,7 +71,7 @@ if __name__ == "__main__":
         orders = orders[start:end]
         random.shuffle(orders)
         for order in orders:
-            LOGGER.info('======================= Start ==========================')
+            LOGGER.info('================== Start ==================')
             with sync_playwright() as playwright:
                 run(playwright, order)
             time.sleep(5)
