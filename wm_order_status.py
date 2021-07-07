@@ -33,13 +33,13 @@ def run(playwright, order):
             data = try_to_scrape(order, page, WM_OLD_PASSWORD)
         result = update_ds_order(order['id'], data)
         LOGGER.info(result)
+        return True
     except Exception as ex:
         LOGGER.exception(ex, exc_info=True)
         LOGGER.error("Failed: " + order['supplier_order_numbers_str'])
 
     browser.close()
-    LOGGER.info('================== End ==================')
-    return
+    return False
 
 
 if __name__ == "__main__":
