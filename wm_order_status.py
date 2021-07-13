@@ -7,7 +7,7 @@ from settings import (
     LOGGER, WALMART, LUMINATI_PASSWORD, LUMINATI_DOMAIN,
     LUMINATI_USERNAME, WM_CURRENT_PASSWORD, WM_OLD_PASSWORD
 )
-from libs.walmart import try_to_scrape
+from libs.walmart import try_to_scrape_walmart_order
 from libs.utils import get_ds_orders, update_ds_order
 
 
@@ -28,9 +28,9 @@ def run(playwright, order):
         # Subscribe to "request" and "response" events.
         # page.on("request", lambda request: print(">>", request.method, request.url))  # NOQA
         # page.on("response", lambda response: print("<<", response.status, response.url))  # NOQA
-        data = try_to_scrape(order, page, WM_CURRENT_PASSWORD)
+        data = try_to_scrape_walmart_order(order, page, WM_CURRENT_PASSWORD)
         if "signInWidget" in data:
-            data = try_to_scrape(order, page, WM_OLD_PASSWORD)
+            data = try_to_scrape_walmart_order(order, page, WM_OLD_PASSWORD)
         result = update_ds_order(order['id'], data)
         LOGGER.info(result)
         return True
