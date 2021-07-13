@@ -33,11 +33,11 @@ def try_to_scrape(order, page, password):
     page.click("button[type=submit]")
     page.wait_for_timeout(random.randint(5000, 10000))
     if page.is_visible('div[class="captcha re-captcha"]'):
-        LOGGER.error("Get Captcha: {}".format(order['ip']['ip']))
+        LOGGER.error("[Captcha] get {}".format(order['ip']['ip']))
         if WM_SELF_RESOLVE_CAPTCHA:
-            resolve_captcha(page)
+            resolve_captcha(page, order['ip']['ip'])
     else:
-        LOGGER.error("No Captcha: {}".format(order['ip']['ip']))
+        LOGGER.info("[Captcha] none {}".format(order['ip']['ip']))
     page.goto(
         'https://www.walmart.com/account/wmpurchasehistory',
         wait_until="networkidle"
@@ -53,8 +53,7 @@ def try_to_scrape(order, page, password):
     return data
 
 
-def resolve_captcha(page):
-    LOGGER.info("Start resolve captcha")
+def resolve_captcha(page, ip):
     i = 0
     while page.is_visible('div[class="captcha re-captcha"]') and i < 3:
         i += 1
@@ -65,5 +64,5 @@ def resolve_captcha(page):
         page_frame.focus('div[role="main"]')
         page_frame.click('div[role="main"]', delay=random.randint(15000, 20000))  # NOQA
         page_frame.wait_for_timeout(random.randint(5000, 10000))
-        LOGGER.info("resolve captcha {} times".format(i))
-    LOGGER.info("Resolve captcha end")
+        LOGGER.info("resolve captcha {} {} times".format(ip, i))
+    LOGGER.info("[Captcha] resolve end {}".format(ip))
