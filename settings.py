@@ -19,6 +19,8 @@ WM_CURRENT_PASSWORD = 'Forte1long!'
 WM_OLD_PASSWORD = 'forte1long'
 WM_SELF_RESOLVE_CAPTCHA = True
 
+HOMEDEPOT = 'P'
+
 file_handler = logging.FileHandler(
     'logs/' + sys.modules['__main__'].__file__.replace('.py', '.log'),
     mode='a',

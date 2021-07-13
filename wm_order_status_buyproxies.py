@@ -7,18 +7,18 @@ from settings import (
     LOGGER, WALMART, WM_CURRENT_PASSWORD, WM_OLD_PASSWORD,
     PROXY_PASS, PROXY_USER
 )
-from libs.walmart import try_to_scrape
+from libs.walmart import try_to_scrape_walmart_order
 from libs.utils import get_ds_orders, update_ds_order, get_proxy_ips
 
 
-def run(playwright, order, ip):
+def run(playwright, order):
     LOGGER.info(order)
-    chromium = playwright.firefox
-    browser = chromium.launch(
+    firefox = playwright.firefox
+    browser = firefox.launch(
         headless=False,
         devtools=True,
         proxy={
-            "server": '{}:{}'.format(ip['ip'], ip['port']),
+            "server": '{}:{}'.format(order['ip']['ip'], order['ip']['port']),
             "username": PROXY_USER,
             "password": PROXY_PASS
         },
@@ -28,7 +28,10 @@ def run(playwright, order, ip):
             'privacy.trackingprotection.socialtracking.enabled': True,
             'privacy.annotate_channels.strict_list.enabled': True,
             'privacy.donottrackheader.enabled': True,
-            'privacy.sanitize.pending': [{"id": "newtab-container", "itemsToClear": [], "options":{}}]  # NOQA
+            'privacy.sanitize.pending': [
+                {"id": "newtab-container", "itemsToClear": [], "options":{}}
+            ],
+            'devtools.toolbox.host': 'bottom'
         }
     )
     try:
@@ -37,9 +40,9 @@ def run(playwright, order, ip):
         # Subscribe to "request" and "response" events.
         # page.on("request", lambda request: print(">>", request.method, request.url))  # NOQA
         # page.on("response", lambda response: print("<<", response.status, response.url))  # NOQA
-        data = try_to_scrape(order, page, WM_CURRENT_PASSWORD)
+        data = try_to_scrape_walmart_order(order, page, WM_CURRENT_PASSWORD)
         if "signInWidget" in data:
-            data = try_to_scrape(order, page, WM_OLD_PASSWORD)
+            data = try_to_scrape_walmart_order(order, page, WM_OLD_PASSWORD)
         result = update_ds_order(order['id'], data)
         LOGGER.info(result)
         return True
@@ -65,7 +68,7 @@ if __name__ == "__main__":
             for ip in random_ips:
                 order['ip'] = ip
                 with sync_playwright() as playwright:
-                    if run(playwright, order, ip):
+                    if run(playwright, order):
                         break
             time.sleep(5)
 

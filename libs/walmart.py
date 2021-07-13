@@ -4,7 +4,7 @@ import re
 from settings import LOGGER, WM_SELF_RESOLVE_CAPTCHA
 
 
-def try_to_scrape(order, page, password):
+def try_to_scrape_walmart_order(order, page, password):
     LOGGER.info("Login with pass: " + password)
     urls = [
         'https://www.walmart.com/account/login',
