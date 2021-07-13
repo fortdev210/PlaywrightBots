@@ -24,6 +24,8 @@ file_handler = logging.FileHandler(
     mode='a',
     delay=0
 )
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')  # NOQA
+file_handler.setFormatter(formatter)
 LOGGER = logging.getLogger(
     sys.modules['__main__'].__file__.replace('.py', '.log')
 )
