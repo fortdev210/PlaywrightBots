@@ -17,6 +17,7 @@ LUMINATI_PASSWORD = 'bf1b7c15d2de'
 WALMART = 'W'
 WM_CURRENT_PASSWORD = 'Forte1long!'
 WM_OLD_PASSWORD = 'forte1long'
+WM_SELF_RESOLVE_CAPTCHA = True
 
 file_handler = logging.FileHandler(
     'logs/' + sys.modules['__main__'].__file__.replace('.py', '.log'),
