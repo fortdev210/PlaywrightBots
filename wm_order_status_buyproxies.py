@@ -13,18 +13,27 @@ from libs.utils import get_ds_orders, update_ds_order, get_proxy_ips
 
 def run(playwright, order, ip):
     LOGGER.info(order)
-    chromium = playwright.chromium
+    chromium = playwright.firefox
     browser = chromium.launch(
         headless=False,
+        devtools=True,
         proxy={
             "server": '{}:{}'.format(ip['ip'], ip['port']),
             "username": PROXY_USER,
             "password": PROXY_PASS
+        },
+        firefox_user_prefs={
+            'media.peerconnection.enabled': False,
+            'privacy.trackingprotection.enabled': True,
+            'privacy.trackingprotection.socialtracking.enabled': True,
+            'privacy.annotate_channels.strict_list.enabled': True,
+            'privacy.donottrackheader.enabled': True,
+            'privacy.sanitize.pending': [{"id": "newtab-container", "itemsToClear": [], "options":{}}]  # NOQA
         }
     )
     try:
         page = browser.new_page()
-        page.set_default_navigation_timeout(60 * 1000)
+        page.set_default_navigation_timeout(120000)
         # Subscribe to "request" and "response" events.
         # page.on("request", lambda request: print(">>", request.method, request.url))  # NOQA
         # page.on("response", lambda response: print("<<", response.status, response.url))  # NOQA
