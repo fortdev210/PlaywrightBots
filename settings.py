@@ -21,6 +21,12 @@ WM_SELF_RESOLVE_CAPTCHA = True
 
 HOMEDEPOT = 'P'
 
+WALMART_PREP_ORDERS_LINK = "http://admin.stlpro.com/products/order_items/new/?supplier=-1&box_size=-1&dummy=None&flag=Walmart+Prep{bot_number}&quantity_ordered=-1&ship_service_level=All&free_delivery=-1&az_account=" 
+WALMART_BUY_ORDERS_LINK = "http://admin.stlpro.com/products/order_items/new/?supplier=-1&box_size=-1&dummy=None&flag=Walmart+PP{bot_number}&quantity_ordered=-1&ship_service_level=All&free_delivery=-1&az_account="
+WALMART_PRIO_ORDERS_LINK = "http://admin.stlpro.com/products/order_items/new/?supplier=-1&box_size=-1&dummy=None&flag=Walmart+Priority&quantity_ordered=-1&ship_service_level=All&az_account="
+WALMART_REBUY_ORDERS_LINK = "http://admin.stlpro.com/products/order_items/new/?supplier=W&box_size=-1&dummy=None&flag=Walmart+Rebuy{bot_number}&quantity_ordered=-1&ship_service_level=All&free_delivery=-1&az_account="
+
+
 file_handler = logging.FileHandler(
     'logs/' + sys.modules['__main__'].__file__.replace('.py', '.log'),
     mode='a',
