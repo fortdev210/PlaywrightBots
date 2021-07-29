@@ -28,7 +28,6 @@ def get_ds_orders(supplier_id):
     )
     return response.json()
 
-
 def update_ds_order(ds_order_id, data):
     url = settings.UPDATE_DS_ORDER_INFO_URL.format(ds_order_id=ds_order_id)
     response = requests.post(
@@ -39,7 +38,6 @@ def update_ds_order(ds_order_id, data):
         json={'data': data, 'confirmed_by': settings.CONFIRMED_BY}
     )
     return response.json()
-
 
 def get_proxy_ips(supplier_id):
     url = settings.GET_PROXIES_URL.format(supplier_id=supplier_id)
@@ -142,7 +140,7 @@ def get_correct_state(state):
     states = ds_us_states()
     state_map = {}
     for ds_state in states:
-        state_map[ds_state.name] = ds_state.abbreviation
+        state_map[ds_state.get('name')] = ds_state.get('abbreviation')
 
     state = state.replace(".", "").upper()
     if (len(state) > 2): 

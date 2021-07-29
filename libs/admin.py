@@ -1,6 +1,7 @@
 import settings
 import random
 import re
+import time
 import os
 from .utils import get_orders_link, get_correct_state
 from .playwright_manager import PlaywrightManager
@@ -16,18 +17,17 @@ class AdminManager(PlaywrightManager):
         self.page.click('[type="submit"]')
 
     def init_step(self):
-        order_link = get_orders_link()
         self.run_browser()
         self.open_new_page()
-        self.go_to_link(order_link)
-        self.admin_login() 
-
     
     def get_ds_orders(self):
         """
         Get ds orders from the certain folder to process
         """
+        order_link = get_orders_link()
         self.init_step()
+        self.go_to_link(order_link)
+        self.admin_login() 
         try:
             self.page.wait_for_selector("text=There is no matched Item", timeout=10000)
             print("There is no orders at the moment.")
@@ -66,6 +66,7 @@ class AdminManager(PlaywrightManager):
         }
         '''
         order_item_ids = self.page.evaluate(javascript_expression)
+        time.sleep(3)
         self.browser.close()
         return order_item_ids
     
@@ -73,6 +74,13 @@ class AdminManager(PlaywrightManager):
         ds_link = "http://admin.stlpro.com/products/getdsorders/"
         self.init_step()
         self.go_to_link(ds_link)
+        try:
+            self.page.wait_for_selector('[name="password"]', timeout=5000)
+            self.admin_login()
+        except:
+            pass
+        
+        self.page.wait_for_selector('[name="object_type"]')
         content = '''() => {
             return (document.querySelector('[name="object_type"]').selectedIndex = 1);
         }'''
@@ -82,9 +90,9 @@ class AdminManager(PlaywrightManager):
         self.page.wait_for_selector('[id="updateAllItemsForm"]')
         
         # ds for chrome 
-        self.open_new_page()
+        self.browser.new_page()
         self.go_to_link("http://admin.stlpro.com/products/getdsforchrome/")
-        self.wait_for_selector('#picked_ip')
+        self.page.wait_for_selector('#picked_ip')
 
         # get order id  
         order_id = self.page.inner_text('[id="ds_order_id"]')
@@ -131,6 +139,7 @@ class AdminManager(PlaywrightManager):
             return [customer_info, customerEmail, freeshipItem, primaryItemQty, price];
         }'''
         dropship_info = self.page.evaluate(content)
+        
         customer_info = dropship_info[0].split('|')
         
         if len(customer_info[7])> 5:
@@ -139,46 +148,46 @@ class AdminManager(PlaywrightManager):
         customer_info[9] = get_correct_state(customer_info[9])
 
         clean_customer_info = {}
-        clean_customer_info.supplier = customer_info[0]
-        clean_customer_info.primaryItem = customer_info[1]
-        clean_customer_info.extraItem = customer_info[2]
-        clean_customer_info.orderId = order_id
+        clean_customer_info['supplier'] = customer_info[0]
+        clean_customer_info['primaryItem'] = customer_info[1]
+        clean_customer_info["extraItem"] = customer_info[2]
+        clean_customer_info['orderId'] = order_id
         if ('rebuy' in hostname.lower()):
-            clean_customer_info.firstName =  re.sub('[^A-Za-z]','', customer_info[3]) 
-            clean_customer_info.lastName = re.sub('[^A-Za-z]','', customer_info[2]) 
+            clean_customer_info['firstName'] =  re.sub('[^A-Za-z]','', customer_info[3]) 
+            clean_customer_info['lastName'] = re.sub('[^A-Za-z]','', customer_info[2]) 
         else:
-            clean_customer_info.firstName = re.sub('[^A-Za-z]','', customer_info[2]) 
-            clean_customer_info.lastName = re.sub('[^A-Za-z]','', customer_info[3]) 
+            clean_customer_info['firstName'] = re.sub('[^A-Za-z]','', customer_info[2]) 
+            clean_customer_info['lastName'] = re.sub('[^A-Za-z]','', customer_info[3]) 
         
-        clean_customer_info.addressOne = re.sub('[&\/\\_+():$"~%*?<>®-]','', customer_info[4])
-        clean_customer_info.addressTwo = re.sub('[&\/\\_+():$"~%*?<>®-]','', customer_info[5])
-        clean_customer_info.city = customer_info[6]
-        clean_customer_info.zipCode = customer_info[7]
-        clean_customer_info.phoneNum = customer_info[8]
-        clean_customer_info.state = customer_info[9]
-        clean_customer_info.email = dropship_info[1]
-        clean_customer_info.qty = dropship_info[3]
-        clean_customer_info.price = dropship_info[4]
+        clean_customer_info['addressOne'] = re.sub('[&\/\\_+():$"~%*?<>®-]','', customer_info[4])
+        clean_customer_info['addressTwo'] = re.sub('[&\/\\_+():$"~%*?<>®-]','', customer_info[5])
+        clean_customer_info['city'] = customer_info[6]
+        clean_customer_info['zipCode'] = customer_info[7]
+        clean_customer_info['phoneNum'] = customer_info[8]
+        clean_customer_info['state'] = customer_info[9]
+        clean_customer_info['email'] = dropship_info[1]
+        clean_customer_info['qty'] = dropship_info[3]
+        clean_customer_info['price'] = dropship_info[4]
         customer_info = clean_customer_info
         
         
-        if customer_info.firstName != "" and customer_info.lastName == "":
-            customer_info.lastName = customer_info.firstName
-        elif customer_info.firstName == "" and customer_info.lastName != "":
-            customer_info.firstName = customer_info.lastName
+        if customer_info['firstName'] != "" and customer_info['lastName'] == "":
+            customer_info['lastName'] = customer_info['firstName']
+        elif customer_info['firstName'] == "" and customer_info['lastName'] != "":
+            customer_info['firstName'] = customer_info['lastName']
 
 
-        if (len(customer_info.phoneNum) == 11):
-            customer_info.phoneNum = customer_info.phoneNum[1:10]
+        if (len(customer_info['phoneNum']) == 11):
+            customer_info['phoneNum'] = customer_info['phoneNum'][1:10]
         
 
-        if customer_info.phoneNum[0] == "0":
-            customer_info.phoneNum = "314" + customer_info.phoneNum[3:10]
+        if customer_info['phoneNum'][0] == "0":
+            customer_info['phoneNum'] = "314" + customer_info['phoneNum'][3:10]
         
 
-        if customer_info.addressOne == "" and customer_info.addressTwo != "":
-            customer_info.addressOne = customer_info.addressTwo
-            customer_info.addressTwo = ""
+        if customer_info.get('addressOne') == "" and customer_info.get('addressTwo') != "":
+            customer_info['addressOne'] = customer_info.get('addressTwo')
+            customer_info['addressTwo'] = ""
         self.browser.close()
         return customer_info
 
