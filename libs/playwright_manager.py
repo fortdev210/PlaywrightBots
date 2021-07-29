@@ -30,21 +30,30 @@ class PlaywrightManager:
                 "username": settings.PROXY_USER,
                 "password": settings.PROXY_PASS
             }
-        if self.use_chrome == True:
-            
-                browser = self.playwright.chromium.launch(
-                    headless=False,
-                    proxy=proxy_data,
-                )
-                self.browser = browser
+        if self.use_chrome == True:    
+            browser = self.playwright.chromium.launch(
+                headless=False,
+                proxy=proxy_data,
+            )
+            self.browser = browser
         else:
-            
-                browser = self.playwright.firefox.launch(
+            browser = self.playwright.firefox.launch(
                     headless=False,
                     devtools=True,
                     proxy=proxy_data,
+                    firefox_user_prefs={
+                        'media.peerconnection.enabled': False,
+                        'privacy.trackingprotection.enabled': True,
+                        'privacy.trackingprotection.socialtracking.enabled': True,
+                        'privacy.annotate_channels.strict_list.enabled': True,
+                        'privacy.donottrackheader.enabled': True,
+                        'privacy.sanitize.pending': [
+                            {"id": "newtab-container", "itemsToClear": [], "options":{}}
+                        ],
+                        'devtools.toolbox.host': 'bottom'
+                    }
                 )
-                self.browser = browser
+            self.browser = browser
     
     def open_new_page(self):
         self.run_browser()
