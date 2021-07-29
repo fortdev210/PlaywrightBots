@@ -56,15 +56,35 @@ class PlaywrightManager:
             self.browser = browser
     
     def open_new_page(self):
-        self.run_browser()
         page = self.browser.new_page()
         page.set_default_navigation_timeout(60 * 1000)
         page.set_viewport_size({"width": 1800 + random.randint(0,200), "height": 800 + random.randint(0,200)})
-        self.page = page
-    
+        self.page = page 
+
     def go_to_link(self, link):
         self.page.goto(link)
     
+    def insert_value(self, selector, value):
+        self.page.type(selector, value, delay=random.randint(100,1000))
+    
+    def wait_element_loading(self, selector, time=10000):
+        self.page.wait_for_selector(selector, timeout=time)
+
+    def reinsert_value(self,selector, value):
+        self.page.focus(selector)
+        self.page.dblclick(selector)
+        self.page.press('Backspace')
+        self.insert_value(selector, value)
+    
+    def press_enter(self):
+        self.page.press('Enter')
+    
+    def reload_page(self):
+        self.page.reload(wait_until="load")
+
+        
+    
+
 
     
 

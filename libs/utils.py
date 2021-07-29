@@ -2,7 +2,7 @@ import base64
 import traceback
 import requests
 import settings
-import os
+from datetime import date, timedelta
 import re
 # hostname = os.uname()[1].lower()
 hostname = 'wm-prep02'
@@ -16,7 +16,6 @@ def get_traceback_lines(ex, ex_traceback=None):
         traceback.format_exception(ex.__class__, ex, ex_traceback)
     ]
     return tb_lines
-
 
 def get_ds_orders(supplier_id):
     url = settings.GET_DS_ORDERS_URL.format(supplier_id=supplier_id)
@@ -147,3 +146,13 @@ def get_correct_state(state):
         state = state_map[state]
     return state
   
+def get_full_state_name(abbreviation):
+    states = ds_us_states()
+    for state in states:
+        if state.get('abbreviation') == abbreviation:
+            return state.get('name')
+
+def schedule_date():
+    future_date = date.today() + timedelta(days=14)
+    format_date = '{month}/{day}/{year}'.format(month=future_date.month, day=future_date.day, year=future_date.year)
+    return format_date

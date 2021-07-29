@@ -1,68 +1,109 @@
+import settings
 import random
 import re
-
-from settings import LOGGER, WM_SELF_RESOLVE_CAPTCHA
-
-
-def try_to_scrape_walmart_order(order, page, password):
-    LOGGER.info("Login with pass: " + password)
-    urls = [
-        'https://www.walmart.com/account/login',
-        'https://www.walmart.com/account/login?tid=0&returnUrl=%2F',
-        'https://www.walmart.com/account/login?tid=0&returnUrl=%2Fcp%2Felectronics%2F3944',  # NOQA
-        'https://www.walmart.com/account/login?tid=0&returnUrl=%2Fbrowse%2Felectronics%2Ftouchscreen-laptops%2F3944_3951_1089430_1230091_1101633',  # NOQA
-        'https://www.walmart.com/account/login?tid=0&returnUrl=%2Flists',
-        'https://www.walmart.com/account/login?tid=0&returnUrl=%2Feasyreorder%3FeroType%3Dlist',  # NOQA
-
-    ]
-    # page.goto('https://bing.com')
-    # page.fill('input[id="sb_form_q"]', 'walmart.com')
-    # page.keyboard.press('Enter')
-    # page.fill("input[id='DeepLinkDD_c']", 'lcd')
-    # page.keyboard.press('Enter')
-    # page.wait_for_timeout(1000)
-
-    url = random.choice(urls)
-    page.goto(url)
-    page.wait_for_timeout(random.randint(3000, 10000))
-    email = order['email'] or order['username']
-    page.fill("input[id=email]", email)
-    page.wait_for_timeout(random.randint(1000, 5000))
-    page.fill("input[id=password]", password)
-    page.wait_for_timeout(random.randint(1000, 5000))
-    page.click("button[type=submit]")
-    page.wait_for_timeout(random.randint(5000, 10000))
-    if page.is_visible('div[class="captcha re-captcha"]'):
-        LOGGER.error("[Captcha] get {}".format(order['ip']['ip']))
-        if WM_SELF_RESOLVE_CAPTCHA:
-            resolve_captcha(page, order['ip']['ip'])
-    else:
-        LOGGER.info("[Captcha] none {}".format(order['ip']['ip']))
-    page.goto(
-        'https://www.walmart.com/account/wmpurchasehistory',
-        wait_until="networkidle"
-    )
-    page.wait_for_timeout(random.randint(5000, 12000))
-    pattern = re.search(
-        "window.__WML_REDUX_INITIAL_STATE__ = (.*?);<\/script>",  # NOQA
-        page.content()
-    )
-    data = pattern[0].replace(
-        'window.__WML_REDUX_INITIAL_STATE__ = ', ''
-    ).replace(';</script>', '')
-    return data
+import time
+import os
+from .playwright_manager import PlaywrightManager
+from .utils import schedule_date, get_full_state_name
 
 
-def resolve_captcha(page, ip):
-    i = 0
-    while page.is_visible('div[class="captcha re-captcha"]') and i < 3:
-        i += 1
-        frame = page.frames[-1]
-        page_frame = frame.page
-        page_frame.hover('div[role="main"]')
-        page_frame.click(random.randint(0, 100), random.randint(0, 100), delay=500)  # NOQA
-        page_frame.focus('div[role="main"]')
-        page_frame.click('div[role="main"]', delay=random.randint(15000, 20000))  # NOQA
-        page_frame.wait_for_timeout(random.randint(5000, 10000))
-        LOGGER.info("resolve captcha {} {} times".format(ip, i))
-    LOGGER.info("[Captcha] resolve end {}".format(ip))
+class WalmarManager(PlaywrightManager):
+    def __init__(self, playwright, **kwargs):
+        super().__init__(playwright, **kwargs)
+        self.reg_order_info = kwargs.get('reg_order_info')
+
+    def open_sign_up_page(self):
+        if self.browser == None:
+            self.run_browser()
+        self.open_new_page()
+        self.go_to_link(settings.WALMART_REG_LINK)
+        
+    def open_sign_in_page(self):
+        self.open_sign_up_page()
+        self.page.wait_for_selector('[data-automation-id="signup-sign-in-btn"]')
+        self.page.click('[data-automation-id="signup-sign-in-btn"]')
+
+    def signin_walmart(self):
+        self.insert_value('[id="email"]', self.reg_order_info['email'])
+        try:
+            self.wait_element_loading('[data-automation-id="signin-continue-submit-btn"]', time=10000)
+            print("New signin page.")
+            self.press_enter()
+            self.insert_value('[id="password"]', settings.WM_CURRENT_PASSWORD)
+            self.press_enter()
+        except:  
+            print("Old signin page now.")
+            self.insert_value('[id="password"]', settings.WM_CURRENT_PASSWORD)
+            self.click_element('[data-automation-id="signin-submit-btn"]')
+            try:
+                self.page.wait_element_loading("text=Your password and email do not match.", time=10000)
+                self.reinsert_value('[id="password"]', settings.WM_OLD_PASSWORD)
+                self.click_element('[data-automation-id="signin-submit-btn"]')
+            except:
+                pass
+
+    def signup_walmart(self):
+        self.wait_element_loading('[id="first-name-su"]')
+        self.insert_value('[id="first-name-su"]', self.reg_order_info['firstName'])
+        self.insert_value('[id="last-name-su"]', self.reg_order_info['lastName'])
+        self.insert_value('[id="email-su"]', self.reg_order_info['email'])
+        self.insert_value('[id="password-su"]', settings.WM_CURRENT_PASSWORD)
+        self.click_element('[id="su-newsletter"]')
+        time.sleep(3)
+        self.wait_element_loading('[data-automation-id="signup-submit-btn"]')
+        self.click_element('[data-automation-id="signup-submit-btn"]')
+
+    def add_event_date(self):
+        event_date = schedule_date()
+        try:
+            self.wait_element_loading('#eventDate')
+            self.insert_value('[id="eventDate"]', event_date)
+        except:
+            self.reload_page()
+            self.wait_element_loading('#eventDate')
+            self.insert_value('[id="eventDate"]', event_date)
+    
+    def add_location(self):
+        state = get_full_state_name(self.reg_order_info['state'])
+        self.wait_element_loading('#regstate')
+        self.insert_value("#regstate", state)
+    
+    def add_organization(self):
+        self.wait_element_loading('#lastname')
+        self.reinsert_value('#lastname', self.reg_order_info['lastName'])
+ 
+    def remove_old_address(self):
+        try:
+            self.wait_element_loading('[class="shipping-address-footer"]')
+            self.click_element('[class*="delete-button "]')
+        except:
+            print('No old address found')
+            pass
+    
+    def add_personal_data(self):
+        try:
+            self.wait_element_loading('#firstName')
+        except:
+            self.reload_page()
+            self.add_event_date()
+            self.add_location()
+            self.add_organization()
+            self.remove_old_address()
+        self.insert_value('#firstName', self.reg_order_info['firstName'])
+        self.insert_value('#lastName', self.reg_order_info['lastName'])
+        self.insert_value('#phone', self.reg_order_info['phoneNum'])
+        self.insert_value('#addressLineOne', self.reg_order_info['addressOne'])
+        self.insert_value('#addressLineTwo', self.reg_order_info['addressTwo'])
+        self.insert_value('#city', self.reg_order_info['city'])
+        self.insert_value('#state', self.reg_order_info['state'])
+        self.insert_value('#postalCode', self.reg_order_info['zipCode'])
+        self.click_element('[data-automation-id="address-form-submit"]')
+        print('All information successfully registered')
+
+    
+
+    
+       
+
+
+    
