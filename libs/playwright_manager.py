@@ -1,7 +1,9 @@
 import sys
 import time
+import os
 import random
 import settings
+from .utils import get_dsh_extension
 
 from playwright.sync_api import sync_playwright
 
@@ -31,9 +33,14 @@ class PlaywrightManager:
                 "password": settings.PROXY_PASS
             }
         if self.use_chrome == True:    
-            browser = self.playwright.chromium.launch(
+            browser = self.playwright.chromium.launch_persistent_context(
                 headless=False,
                 proxy=proxy_data,
+                user_data_dir = os.getcwd() + '/user_tmp',
+                args = [
+                    f"--disable-extensions-except={os.getcwd()+'/extensions/dsh'}",
+                    f"--load-extension={os.getcwd()+'/extensions/dsh'}",
+                ]
             )
             self.browser = browser
         else:
@@ -84,9 +91,39 @@ class PlaywrightManager:
 
     def reload_page(self):
         self.page.reload(wait_until="load")
-
-        
     
+    def click_element(self, selector):
+        self.page.click(selector, delay=random.randint(0,10))
+
+    def select_option(self, selector, **kwargs):
+        if kwargs.get('option_selector') == 'label':
+            self.page.select(selector, label=kwargs.get('option_value'))
+        elif kwargs.get('option_selector') == 'index':
+            self.page.select(selector, index=kwargs.get('option_value'))
+        elif kwargs.get('option_selector') == 'value':
+            self.page.select(selector, value=kwargs.get('option_value'))
+        
+    def manage_proxy_by_dsh(self, flag, proxy_info=None):
+        targets = self.browser.background_pages()
+        dsh_extension = filter(get_dsh_extension, targets)
+        ip = ''
+        port = ''
+        if proxy_info == None:
+            ip = '127.0.0.1'
+            port = str(random.randint(24000, 24100))
+        else:
+            ip = proxy_info[0]
+            port = proxy_info[1]
+        
+        if flag == 'ON':
+            content = """(ip, port) => {
+                setProxyWebF(ip, port);
+            }, (ip, port)"""
+            dsh_extension.evaluate(content)
+        else:
+            content = """() => { proxyOffWebF()}"""
+            dsh_extension.evaluate(content)
+        
 
 
     

@@ -26,6 +26,8 @@ WALMART_BUY_ORDERS_LINK = "http://admin.stlpro.com/products/order_items/new/?sup
 WALMART_PRIO_ORDERS_LINK = "http://admin.stlpro.com/products/order_items/new/?supplier=-1&box_size=-1&dummy=None&flag=Walmart+Priority&quantity_ordered=-1&ship_service_level=All&az_account="
 WALMART_REBUY_ORDERS_LINK = "http://admin.stlpro.com/products/order_items/new/?supplier=W&box_size=-1&dummy=None&flag=Walmart+Rebuy{bot_number}&quantity_ordered=-1&ship_service_level=All&free_delivery=-1&az_account="
 WALMART_REG_LINK = "https://www.walmart.com/account/signup?returnUrl=%2Flists%2Fcreate-events-registry%3Fr%3Dyes"
+WALMART_ITEM_LINK = "http://www.walmart.com/ip/{item}?selected=true"
+WALMART_CART_LINK = "https://www.walmart.com/cart"
 
 file_handler = logging.FileHandler(
     'logs/' + sys.modules['__main__'].__file__.replace('.py', '.log'),

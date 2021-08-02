@@ -108,7 +108,99 @@ class WalmarManager(PlaywrightManager):
         self.add_personal_data()
     
     def make_registry_public(self):
+        # check make registry public
+        self.wait_element_loading("text=Make my registry public")
+        content = """() => {
+            document
+            .querySelectorAll(".LNR-PrivacyOptions")[0]
+            .childNodes[1].querySelector("input").click()
+        }"""
+        self.page.evaluate(content)
+        # click looking goog button
+        time.sleep(3)
+        self.click_element("text=Looking good, create it!")
+    
+    def verify_address(self):
+        try:
+            self.wait_element_loading('[class*="alert-warning"]', 20000)
+            time.sleep(1)
+            self.click_element('[data-automation-id="address-form-submit"]')
+        except:
+            pass
+
+        try:
+            self.wait_element_loading('[class="validation-wrap"]', 30000)
+            time.sleep(1)
+            self.click_element('[class*="button-save-address"]')
+        except:
+            pass
+    
+    def check_registration_status(self):
+        time.sleep(5)
+        current_url = self.page.url
+        if "created" in current_url:
+            return True
+        return False
+
+    def add_primary_item(self):
+        primary_item_link = settings.WALMART_ITEM_LINK.format(self.reg_order_info['primaryItem'])
+        self.open_new_page()
+        self.go_to_link(primary_item_link)
+        self.wait_element_loading('[class*="AddToRegistry-text"]', 30000)
+        self.click_element('[class*="AddToRegistry-text"]')
+        self.wait_element_loading('[class="Registry-btn-row"]', 30000)
+        content = """()=> {
+            document
+            .querySelector('[class="Registry-btn-row"]')
+            .querySelector("button").click()
+        }"""
+        self.page.evaluate(content)
+        self.wait_element_loading('[class="select-field"]')
+        time.sleep(2)
+        self.click_element('[data-tl-id="cta_add_to_cart_button"]')
+        print("Primary Item Added.")
+
+        # Add qty in the cart
+        if self.reg_order_info['qty'] != 1:
+            try:
+                self.go_to_link(settings.WALMART_CART_LINK)
+                self.wait_element_loading('[class*="field-input "]', 45000)
+                self.select_option('[aria-label="Quantity"]', label=self.reg_order_info['qty'])
+            except:
+                print("Error: Should reload page")
+                self.reload_page()
+                self.wait_element_loading('[class*="field-input "]', 45000)
+                self.select_option('[aria-label="Quantity"]', label=self.reg_order_info['qty'])
+    
+    def add_extra_item(self):
+        extra_item_link = settings.WALMART_ITEM_LINK.format(self.reg_order_info['extraItem'])
+        self.open_new_page()
+        self.go_to_link(extra_item_link)
+        self.wait_element_loading('[data-tl-id="ProductPrimaryCTA-cta_add_to_cart_button"]')
+        time.sleep(2)
+        self.click_element('[data-tl-id="ProductPrimaryCTA-cta_add_to_cart_button"]')
         
+    def wm_register(self):
+        self.manage_proxy_by_dsh('ON', [self.reg_order_info['ip'], self.reg_order_info['port']])
+        time.sleep(3)
+        self.open_sign_in_page()
+        if self.reg_order_info['extraItem'] != None:
+            self.signin_walmart()
+        else:
+            self.signup_walmart()
+        self.manage_proxy_by_dsh('OFF')
+        self.register_customer_info()
+        self.verify_address()
+        self.make_registry_public()
+        registered = self.check_registration_status()
+        
+        if registered == True:
+            self.page.close()
+            self.add_primary_item()
+            if self.reg_order_info['extraItem'] != None:
+                self.add_extra_item()
+            else:
+                pass
 
 
     

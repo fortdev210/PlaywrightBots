@@ -92,7 +92,11 @@ class AdminManager(PlaywrightManager):
         # ds for chrome 
         self.browser.new_page()
         self.go_to_link("http://admin.stlpro.com/products/getdsforchrome/")
-        self.page.wait_for_selector('#picked_ip')
+        self.wait_element_loading('#picked_ip')
+        
+        # get proxy ip and port from db
+        ip = self.page.inner_text('#picked_ip')
+        port = self.page.inner_text('#picked_port')
 
         # get order id  
         order_id = self.page.inner_text('[id="ds_order_id"]')
@@ -150,7 +154,7 @@ class AdminManager(PlaywrightManager):
         clean_customer_info = {}
         clean_customer_info['supplier'] = customer_info[0]
         clean_customer_info['primaryItem'] = customer_info[1]
-        clean_customer_info["extraItem"] = customer_info[2]
+        clean_customer_info["extraItem"] = dropship_info[2]
         clean_customer_info['orderId'] = order_id
         if ('rebuy' in hostname.lower()):
             clean_customer_info['firstName'] =  re.sub('[^A-Za-z]','', customer_info[3]) 
@@ -188,6 +192,8 @@ class AdminManager(PlaywrightManager):
         if customer_info.get('addressOne') == "" and customer_info.get('addressTwo') != "":
             customer_info['addressOne'] = customer_info.get('addressTwo')
             customer_info['addressTwo'] = ""
+        customer_info['ip'] = ip
+        customer_info['port'] = port
         self.browser.close()
         return customer_info
 

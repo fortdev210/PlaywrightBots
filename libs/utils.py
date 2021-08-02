@@ -156,3 +156,8 @@ def schedule_date():
     future_date = date.today() + timedelta(days=14)
     format_date = '{month}/{day}/{year}'.format(month=future_date.month, day=future_date.day, year=future_date.year)
     return format_date
+
+def get_dsh_extension(target):
+    if target.get('title') == 'STL Pro Dropship Helper' and target.get('type') == 'background_page':
+        return True
+    return False
