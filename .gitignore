@@ -62,7 +62,7 @@ libs/filters/buyer/
 myproject/settings/parameters/local.env
 gmail/
 
-
+/user_tmp
 # Luminati backups
 luminati.config.backup
 luminati.config.*
