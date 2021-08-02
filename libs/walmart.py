@@ -1,7 +1,7 @@
 import random
 import re
 
-from settings import LOGGER, WM_SELF_RESOLVE_CAPTCHA
+from settings import LOGGER, WALMART_SELF_RESOLVE_CAPTCHA
 
 
 def try_to_scrape_walmart_order(order, page, password):
@@ -34,7 +34,7 @@ def try_to_scrape_walmart_order(order, page, password):
     page.wait_for_timeout(random.randint(5000, 10000))
     if page.is_visible('div[class="captcha re-captcha"]'):
         LOGGER.error("[Captcha] get {}".format(order['ip']['ip']))
-        if WM_SELF_RESOLVE_CAPTCHA:
+        if WALMART_SELF_RESOLVE_CAPTCHA:
             resolve_captcha(page, order['ip']['ip'])
     else:
         LOGGER.info("[Captcha] none {}".format(order['ip']['ip']))

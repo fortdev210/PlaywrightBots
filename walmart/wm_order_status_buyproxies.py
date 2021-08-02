@@ -3,12 +3,13 @@ import random
 import time
 
 from playwright.sync_api import sync_playwright
-from settings import (
-    LOGGER, WALMART, WM_CURRENT_PASSWORD, WM_OLD_PASSWORD,
-    PROXY_PASS, PROXY_USER
-)
+import constants
 from libs.walmart import try_to_scrape_walmart_order
 from libs.utils import get_ds_orders, update_ds_order, get_proxy_ips
+from settings import (
+    LOGGER, WALMART_PASSWORD, WALMART_OLD_PASSWORDS,
+    BUY_PROXIES_PASSWORD, BUY_PROXIES_USERNAME
+)
 
 
 def run(playwright, order):
@@ -19,8 +20,8 @@ def run(playwright, order):
         devtools=True,
         proxy={
             "server": '{}:{}'.format(order['ip']['ip'], order['ip']['port']),
-            "username": PROXY_USER,
-            "password": PROXY_PASS
+            "username": BUY_PROXIES_USERNAME,
+            "password": BUY_PROXIES_PASSWORD
         },
         firefox_user_prefs={
             'media.peerconnection.enabled': False,
@@ -37,12 +38,13 @@ def run(playwright, order):
     try:
         page = browser.new_page()
         page.set_default_navigation_timeout(120000)
-        # Subscribe to "request" and "response" events.
-        # page.on("request", lambda request: print(">>", request.method, request.url))  # NOQA
-        # page.on("response", lambda response: print("<<", response.status, response.url))  # NOQA
-        data = try_to_scrape_walmart_order(order, page, WM_CURRENT_PASSWORD)
+        data = try_to_scrape_walmart_order(
+            order, page, WALMART_PASSWORD
+        )
         if "signInWidget" in data:
-            data = try_to_scrape_walmart_order(order, page, WM_OLD_PASSWORD)
+            data = try_to_scrape_walmart_order(
+                order, page, WALMART_OLD_PASSWORDS[0]
+            )
         result = update_ds_order(order['id'], data)
         LOGGER.info(result)
         return True
@@ -56,9 +58,9 @@ def run(playwright, order):
 if __name__ == "__main__":
     start = int(sys.argv[1])
     end = int(sys.argv[2])
-    ips = get_proxy_ips(supplier_id=WALMART)['results']
+    ips = get_proxy_ips(supplier_id=constants.Supplier.WALMART_CODE)['results']
     while True:
-        orders = get_ds_orders(supplier_id=WALMART)
+        orders = get_ds_orders(supplier_id=constants.Supplier.WALMART_CODE)
         orders = orders[start:end]
         random.shuffle(orders)
         for order in orders:

@@ -4,11 +4,12 @@ import random
 
 from playwright.sync_api import sync_playwright
 from settings import (
-    LOGGER, WALMART, LUMINATI_PASSWORD, LUMINATI_DOMAIN,
-    LUMINATI_USERNAME, WM_CURRENT_PASSWORD, WM_OLD_PASSWORD
+    LOGGER, WALMART_PASSWORD, WALMART_OLD_PASSWORDS,
+    LUMINATI_PASSWORD, LUMINATI_DOMAIN, LUMINATI_USERNAME
 )
 from libs.walmart import try_to_scrape_walmart_order
 from libs.utils import get_ds_orders, update_ds_order
+import constants
 
 
 def run(playwright, order):
@@ -26,11 +27,13 @@ def run(playwright, order):
         page = browser.new_page()
         page.set_default_navigation_timeout(60 * 1000)
         # Subscribe to "request" and "response" events.
-        # page.on("request", lambda request: print(">>", request.method, request.url))  # NOQA
-        # page.on("response", lambda response: print("<<", response.status, response.url))  # NOQA
-        data = try_to_scrape_walmart_order(order, page, WM_CURRENT_PASSWORD)
+        data = try_to_scrape_walmart_order(
+            order, page, WALMART_PASSWORD
+        )
         if "signInWidget" in data:
-            data = try_to_scrape_walmart_order(order, page, WM_OLD_PASSWORD)
+            data = try_to_scrape_walmart_order(
+                order, page, WALMART_OLD_PASSWORDS[0]
+            )
         result = update_ds_order(order['id'], data)
         LOGGER.info(result)
         return True
@@ -46,7 +49,7 @@ if __name__ == "__main__":
     start = int(sys.argv[1])
     end = int(sys.argv[2])
     while True:
-        orders = get_ds_orders(supplier_id=WALMART)
+        orders = get_ds_orders(supplier_id=constants.Supplier.WALMART_CODE)
         orders = orders[start:end]
         random.shuffle(orders)
         for order in orders:

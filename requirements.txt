@@ -1,2 +1,7 @@
-playwright==1.12.1
-requests==2.25.1
+playwright==1.13.1
+requests==2.26.0
+us==2.0.2
+
+# pre-commit
+pre-commit==2.13.0
+flake8==3.9.2

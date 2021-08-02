@@ -19,7 +19,7 @@ def get_ds_orders(supplier_id):
     response = requests.get(
         url,
         headers={
-            "Authorization": "Basic " + base64.b64encode(bytes('{}:{}'.format(settings.BUYBOT_USER, settings.BUYBOT_PASS), encoding="raw_unicode_escape")).decode()  # NOQA
+            "Authorization": "Basic " + base64.b64encode(bytes('{}:{}'.format(settings.BUYBOT_USERNAME, settings.BUYBOT_PASSWORD), encoding="raw_unicode_escape")).decode()  # NOQA
         }
     )
     return response.json()
@@ -30,7 +30,7 @@ def update_ds_order(ds_order_id, data):
     response = requests.post(
         url,
         headers={
-            "Authorization": "Basic " + base64.b64encode(bytes('{}:{}'.format(settings.BUYBOT_USER, settings.BUYBOT_PASS), encoding="raw_unicode_escape")).decode()  # NOQA
+            "Authorization": "Basic " + base64.b64encode(bytes('{}:{}'.format(settings.BUYBOT_USERNAME, settings.BUYBOT_PASSWORD), encoding="raw_unicode_escape")).decode()  # NOQA
         },
         json={'data': data, 'confirmed_by': settings.CONFIRMED_BY}
     )
@@ -42,7 +42,7 @@ def get_proxy_ips(supplier_id):
     response = requests.get(
         url,
         headers={
-            "Authorization": "Basic " + base64.b64encode(bytes('{}:{}'.format(settings.BUYBOT_USER, settings.BUYBOT_PASS), encoding="raw_unicode_escape")).decode()  # NOQA
+            "Authorization": "Basic " + base64.b64encode(bytes('{}:{}'.format(settings.BUYBOT_USERNAME, settings.BUYBOT_PASSWORD), encoding="raw_unicode_escape")).decode()  # NOQA
         }
     )
     return response.json()

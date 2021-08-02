@@ -1,6 +1,5 @@
 import random
 import requests
-import re
 import base64
 import json
 import time
@@ -9,7 +8,7 @@ import sys
 from playwright.sync_api import sync_playwright
 
 
-getDsOrdersUrl = "https://admin.stlpro.com/v2/ds_order/scrape_order_status/?supplier_id=P"
+getDsOrdersUrl = "https://admin.stlpro.com/v2/ds_order/scrape_order_status/?supplier_id=P"  # NOQA
 updateDsOrderInfoUrl = "https://admin.stlpro.com/v2/ds_order/"
 
 
@@ -18,18 +17,18 @@ def get_ds_orders():
     response = requests.get(
         url,
         headers={
-            "Authorization": "Basic " + base64.b64encode(b'buybot:forte1long').decode()
+            "Authorization": "Basic " + base64.b64encode(b'buybot:forte1long').decode()  # NOQA
         }
     )
     return response.json()
 
 
 def update_ds_order(ds_order_id, data):
-    url = updateDsOrderInfoUrl + str(ds_order_id) + "/update_order_status_scraped_result/";
+    url = updateDsOrderInfoUrl + str(ds_order_id) + "/update_order_status_scraped_result/";  # NOQA
     response = requests.post(
         url,
         headers={
-            "Authorization": "Basic " + base64.b64encode(b'buybot:forte1long').decode()
+            "Authorization": "Basic " + base64.b64encode(b'buybot:forte1long').decode()  # NOQA
         },
         json={'data': data}
     )
@@ -50,8 +49,8 @@ def run(playwright, order):
         page = browser.new_page()
         page.set_default_navigation_timeout(60 * 1000)
         # Subscribe to "request" and "response" events.
-        # page.on("request", lambda request: print(">>", request.method, request.url))
-        # page.on("response", lambda response: print("<<", response.status, response.url))
+        # page.on("request", lambda request: print(">>", request.method, request.url))  # NOQA
+        # page.on("response", lambda response: print("<<", response.status, response.url))  # NOQA
         urls = [
             'https://www.homedepot.com/order/view/tracking',
         ]
@@ -66,8 +65,10 @@ def run(playwright, order):
         page.click("button[type=submit]")
         page.wait_for_timeout(5000)
 
-        content = '''([x]) => {return fetch('/customer/order/v1/guest/orderdetailsgroup', {method: 'POST', body: '{"orderDetailsRequest": {"orderId": "%s", "emailId": "%s"}}', headers: {'Accept': 'application/json','Content-Type': 'application/json'}}).then(res => res.json());}'''
-        content = content % (order['supplier_order_numbers_str'], order['user_email'])
+        content = '''([x]) => {return fetch('/customer/order/v1/guest/orderdetailsgroup', {method: 'POST', body: '{"orderDetailsRequest": {"orderId": "%s", "emailId": "%s"}}', headers: {'Accept': 'application/json','Content-Type': 'application/json'}}).then(res => res.json());}'''  # NOQA
+        content = content % (
+            order['supplier_order_numbers_str'], order['user_email']
+        )
         data = page.evaluate(content, [None])
         print(data)
         print(update_ds_order(order['id'], json.dumps(data)))
