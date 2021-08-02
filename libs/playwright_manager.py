@@ -79,6 +79,9 @@ class PlaywrightManager:
     def press_enter(self):
         self.page.press('Enter')
     
+    def check_element(self, selector):
+        self.page.check(selector)
+
     def reload_page(self):
         self.page.reload(wait_until="load")
 

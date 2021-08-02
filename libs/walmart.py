@@ -100,7 +100,16 @@ class WalmarManager(PlaywrightManager):
         self.click_element('[data-automation-id="address-form-submit"]')
         print('All information successfully registered')
 
+    def register_customer_info(self):
+        self.add_event_date()
+        self.add_location()
+        self.add_organization()
+        self.remove_old_address()
+        self.add_personal_data()
     
+    def make_registry_public(self):
+        
+
 
     
        
