@@ -5,9 +5,7 @@ import settings
 import os
 import re
 from datetime import date, timedelta
-# hostname = os.uname()[1].lower()
-hostname = 'wm-prep02'
-bot_number = int(re.sub('[^0-9]','',hostname))
+
 
 def get_traceback_lines(ex, ex_traceback=None):
     if ex_traceback is None:
@@ -165,3 +163,10 @@ def get_dsh_extension(target):
     if target.get('title') == 'STL Pro Dropship Helper' and target.get('type') == 'background_page':
         return True
     return False
+
+def get_hostname():
+    hostname = os.uname()[1].lower()
+    return hostname
+
+def get_bot_number(hostname):
+    return int(re.sub('[^0-9]','',hostname))
