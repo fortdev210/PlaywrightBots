@@ -7,7 +7,7 @@ from settings import (
     LOGGER, WALMART_PASSWORD, WALMART_OLD_PASSWORDS,
     LUMINATI_PASSWORD, LUMINATI_DOMAIN, LUMINATI_USERNAME
 )
-from libs.walmart import try_to_scrape_walmart_order
+from .walmart_order_status_helper import try_to_scrape_walmart_order
 from libs.utils import get_ds_orders, update_ds_order
 import constants
 

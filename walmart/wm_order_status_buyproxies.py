@@ -4,7 +4,7 @@ import time
 
 from playwright.sync_api import sync_playwright
 import constants
-from libs.walmart import try_to_scrape_walmart_order
+from .walmart_order_status_helper import try_to_scrape_walmart_order
 from libs.utils import get_ds_orders, update_ds_order, get_proxy_ips
 from settings import (
     LOGGER, WALMART_PASSWORD, WALMART_OLD_PASSWORDS,
