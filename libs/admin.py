@@ -71,6 +71,9 @@ class AdminManager(PlaywrightManager):
         return order_item_ids
     
     def get_order_details(self, current_order_id):
+        """
+        Get detailed order information and ip and port
+        """
         ds_link = "http://admin.stlpro.com/products/getdsorders/"
         self.init_step()
         self.go_to_link(ds_link)
