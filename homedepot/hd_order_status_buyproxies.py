@@ -7,8 +7,9 @@ from playwright.sync_api import sync_playwright
 from libs.utils import get_ds_orders, update_ds_order, get_proxy_ips
 
 from settings import (
-    LOGGER, HOMEDEPOT, PROXY_PASS, PROXY_USER
+    LOGGER, BUY_PROXIES_PASSWORD, BUY_PROXIES_USERNAME
 )
+import constants
 
 
 def run(playwright, order):
@@ -18,8 +19,8 @@ def run(playwright, order):
         headless=False,
         proxy={
             "server": '{}:{}'.format(order['ip']['ip'], order['ip']['port']),
-            "username": PROXY_USER,
-            "password": PROXY_PASS
+            "username": BUY_PROXIES_USERNAME,
+            "password": BUY_PROXIES_PASSWORD
         },
         firefox_user_prefs={
             'media.peerconnection.enabled': False,
@@ -68,9 +69,11 @@ def run(playwright, order):
 if __name__ == "__main__":
     start = int(sys.argv[1])
     end = int(sys.argv[2])
-    ips = get_proxy_ips(supplier_id=HOMEDEPOT)['results']
+    ips = get_proxy_ips(
+        supplier_id=constants.Supplier.HOMEDEPOT_CODE
+    )['results']
     while True:
-        orders = get_ds_orders(HOMEDEPOT)
+        orders = get_ds_orders(constants.Supplier.HOMEDEPOT_CODE)
         orders = orders[start:end]
         random.shuffle(orders)
         for order in orders:

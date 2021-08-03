@@ -1,33 +1,55 @@
-# Setup
+# PlayWright Bots
+
+
+## Setup
 
 ```bash
 git git@github.com:STLPROINC/PlaywrightBots.git
 cd PlaywrightBots
 
-# Create a virtualenv here named venv (strongly suggested)
-virtualenv venv
+virtualenv venv -p python3
 source venv/bin/activate
 pip install -r requirements.txt
-pip install -r requirements.dev.txt
 ```
-## Setup Hook
 
-Check the hooks directory.
+Install playwright browsers
 
-`pre-commit` is hook will be run before commit was applied
-`post-commit` is hook will be run after commit was applied
-
-To setup these hook
-
+This is for Mac osx, for other please follow this link https://playwright.dev/python/docs/installation/
+```bash
+pip install playwright
+PLAYWRIGHT_BROWSERS_PATH=$HOME/pw-browsers python -m playwright install
 ```
-cd <top folder contains this repository>
 
-cd .git/hooks
+`pre-commit` setup
 
-# add pre-commit hook
-ln -s ../../hooks/pre-commit
+```bash
+pre-commit install
 ```
+
+Copy file `.env.example` to `.env` and change to your credentials
+
+```bash
+cp .env.example .env
+```
+
+## Add logs directories
+
+```bash
+mkdir -p logs/walmart/
+mkdir -p logs/homedepot/
+```
+
 
 ## Run
 
-`python order_status_buyproxies.py 0 20`
+`python walmart/wm_order_status_buyproxies.py 0 20`
+
+
+## How to work on this project
+
+### Source code structure
+
+1. `contants`: all constant classes
+2. `homedepot`: all HomeDepot bots
+3. `walmart`: all Walmart bots
+4. `libs`: all needed libraries, customized code
