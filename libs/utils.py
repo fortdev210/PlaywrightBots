@@ -1,6 +1,10 @@
 import base64
+import os
+import re
 import traceback
 import requests
+from datetime import date, timedelta
+
 import settings
 
 
@@ -46,3 +50,33 @@ def get_proxy_ips(supplier_id):
         }
     )
     return response.json()
+
+def get_dsh_extension(target):
+    if target.get('title') == 'STL Pro Dropship Helper' and target.get('type') == 'background_page':
+        return True
+    return False
+
+def get_hostname():
+    hostname = os.uname()[1].lower()
+    return hostname
+
+def get_bot_number(hostname):
+    return int(re.sub('[^0-9]','',hostname))
+
+def get_bot_username():
+    hostname = get_hostname()
+    bot_number = get_bot_number()
+    if 'prior' in hostname or 'prep' in hostname:
+        return settings.BUYBOT_USER
+    elif 'rebuy' in hostname:
+        if bot_number == 1:
+            return 'buybot-rebuy'
+        else:
+            return 'buybot-rebuy2'
+    else:
+        return settings.BUYBOT_USER + str(bot_number)
+
+def schedule_date():
+    future_date = date.today() + timedelta(days=14)
+    format_date = '{month}/{day}/{year}'.format(month=future_date.month, day=future_date.day, year=future_date.year)
+    return format_date
