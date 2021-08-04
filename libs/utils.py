@@ -3,7 +3,7 @@ import os
 import re
 import traceback
 import requests
-from datetime import date, timedelta
+from datetime import date, timedelta, datetime
 
 import settings
 
@@ -80,3 +80,13 @@ def schedule_date():
     future_date = date.today() + timedelta(days=14)
     format_date = '{month}/{day}/{year}'.format(month=future_date.month, day=future_date.day, year=future_date.year)
     return format_date
+
+def check_within_day_order(last_order_date):
+    order_datetime = datetime.fromisoformat(last_order_date)
+    order_date = order_datetime.date()
+    today = date.today()
+    delta = (today - order_date).days
+    if delta > 1:
+        return True
+    else:
+        return False
