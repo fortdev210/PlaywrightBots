@@ -1,12 +1,14 @@
 import settings
 import time
-from .playwright_manage import PlaywrightManager
+import us
+
+from .bot_manager import BotManager
 from .utils import schedule_date, get_full_state_name
 
 
-class WalmarManager(PlaywrightManager):
-    def __init__(self, playwright, **kwargs):
-        super().__init__(playwright, **kwargs)
+class WalmarManager(BotManager):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
         self.reg_order_info = kwargs.get('reg_order_info')
 
     def open_sign_up_page(self):
@@ -61,7 +63,7 @@ class WalmarManager(PlaywrightManager):
             self.insert_value('[id="eventDate"]', event_date)
     
     def add_location(self):
-        state = get_full_state_name(self.reg_order_info['state'])
+        state = us.states[self.reg_order_info['state']]
         self.wait_element_loading('#regstate')
         self.insert_value("#regstate", state)
     
