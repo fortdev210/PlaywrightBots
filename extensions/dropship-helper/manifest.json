@@ -1,0 +1,33 @@
+{
+"update_url": "https://clients2.google.com/service/update2/crx",
+
+  "name": "STL Pro Dropship Helper",
+  "description": "Dropshipping helper for STL Pro",
+  "version": "2.2.1",
+  "options_page": "options.html",
+  "permissions": [
+      "proxy",
+      "tabs",
+      "unlimitedStorage",
+      "storage",
+      "<all_urls>",
+	  "contextMenus",
+      "webRequest",
+      "webRequestBlocking"
+  ],
+  "background": {
+	  "scripts": ["background.js"]
+  },
+  "browser_action": {
+      "default_title": "STL Pro Dropship Helper",
+      "default_icon": "icon.png",
+      "default_popup": "popup.html"
+  },
+  "manifest_version": 2,
+    "content_scripts": [
+    {
+      "matches": [ "http://*/*", "https://*/*"],
+      "js": ["jquery.js","alert.js", "contentscript.js"]
+    }
+  ]
+}
