@@ -41,7 +41,7 @@ def update_ds_order(ds_order_id, data):
     return response.json()
 
 def put_email_in_prep(email, ds_order_id):
-    url = settings.UPDATE_DS_ORDER_INFO_URL.format(ds_order_id=ds_order_id)
+    url = settings.SET_ORDER_FLAG_URL.format(ds_order_id=ds_order_id)
     response = requests.put(
         url,
         headers={
@@ -52,7 +52,7 @@ def put_email_in_prep(email, ds_order_id):
     return response.json()
 
 def put_order_in_process(ds_order_id):
-    url = settings.UPDATE_DS_ORDER_INFO_URL.format(ds_order_id=ds_order_id)
+    url = settings.SET_ORDER_FLAG_URL.format(ds_order_id=ds_order_id)
     response = requests.put(
         url,
         headers={
@@ -63,7 +63,7 @@ def put_order_in_process(ds_order_id):
     return response.json()
 
 def put_order_in_outofstock(ds_order_id):
-    url = settings.UPDATE_DS_ORDER_INFO_URL.format(ds_order_id=ds_order_id)
+    url = settings.SET_ORDER_FLAG_URL.format(ds_order_id=ds_order_id)
     response = requests.put(
         url,
         headers={
@@ -74,7 +74,7 @@ def put_order_in_outofstock(ds_order_id):
     return response.json()
 
 def remove_email_from_prep(ds_order_id):
-    url = settings.UPDATE_DS_ORDER_INFO_URL.format(ds_order_id=ds_order_id)
+    url = settings.SET_ORDER_FLAG_URL.format(ds_order_id=ds_order_id)
     response = requests.put(
         url,
         headers={
@@ -85,7 +85,7 @@ def remove_email_from_prep(ds_order_id):
     return response.json()
 
 def put_order_in_rebuy(ds_order_id):
-    url = settings.UPDATE_DS_ORDER_INFO_URL.format(ds_order_id=ds_order_id)
+    url = settings.SET_ORDER_FLAG_URL.format(ds_order_id=ds_order_id)
     response = requests.put(
         url,
         headers={
@@ -96,7 +96,7 @@ def put_order_in_rebuy(ds_order_id):
     return response.json()
 
 def set_cant_ship_to_address(ds_order_id):
-    url = settings.UPDATE_DS_ORDER_INFO_URL.format(ds_order_id=ds_order_id)
+    url = settings.SET_ORDER_FLAG_URL.format(ds_order_id=ds_order_id)
     response = requests.put(
         url,
         headers={
@@ -115,6 +115,9 @@ def get_proxy_ips(supplier_id):
         }
     )
     return response.json()
+
+
+
 
 def get_dsh_extension(target):
     if target.get('title') == 'STL Pro Dropship Helper' and target.get('type') == 'background_page':
