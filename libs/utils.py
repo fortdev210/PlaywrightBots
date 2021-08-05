@@ -40,6 +40,71 @@ def update_ds_order(ds_order_id, data):
     )
     return response.json()
 
+def put_email_in_prep(email, ds_order_id):
+    url = settings.UPDATE_DS_ORDER_INFO_URL.format(ds_order_id=ds_order_id)
+    response = requests.put(
+        url,
+        headers={
+            "Authorization": "Basic " + base64.b64encode(bytes('{}:{}'.format(settings.BUYBOT_USERNAME, settings.BUYBOT_PASSWORD), encoding="raw_unicode_escape")).decode()  # NOQA
+        },
+        json={'flag': 'Walmart Processing', 'buyer_email': email}
+    )
+    return response.json()
+
+def put_order_in_process(ds_order_id):
+    url = settings.UPDATE_DS_ORDER_INFO_URL.format(ds_order_id=ds_order_id)
+    response = requests.put(
+        url,
+        headers={
+            "Authorization": "Basic " + base64.b64encode(bytes('{}:{}'.format(settings.BUYBOT_USERNAME, settings.BUYBOT_PASSWORD), encoding="raw_unicode_escape")).decode()  # NOQA
+        },
+        json={ "note": "", "flag": "Walmart Processing"}
+    )
+    return response.json()
+
+def put_order_in_outofstock(ds_order_id):
+    url = settings.UPDATE_DS_ORDER_INFO_URL.format(ds_order_id=ds_order_id)
+    response = requests.put(
+        url,
+        headers={
+            "Authorization": "Basic " + base64.b64encode(bytes('{}:{}'.format(settings.BUYBOT_USERNAME, settings.BUYBOT_PASSWORD), encoding="raw_unicode_escape")).decode()  # NOQA
+        },
+        json={ "note": "Preprocessed by Playwright Bot", "flag": "Out Of Stock"}
+    )
+    return response.json()
+
+def remove_email_from_prep(ds_order_id):
+    url = settings.UPDATE_DS_ORDER_INFO_URL.format(ds_order_id=ds_order_id)
+    response = requests.put(
+        url,
+        headers={
+            "Authorization": "Basic " + base64.b64encode(bytes('{}:{}'.format(settings.BUYBOT_USERNAME, settings.BUYBOT_PASSWORD), encoding="raw_unicode_escape")).decode()  # NOQA
+        },
+        json={ "note": "Preprocessed by Playwright Bot", "flag": "Walmart Processing", "buyer_email_prep": None}
+    )
+    return response.json()
+
+def put_order_in_rebuy(ds_order_id):
+    url = settings.UPDATE_DS_ORDER_INFO_URL.format(ds_order_id=ds_order_id)
+    response = requests.put(
+        url,
+        headers={
+            "Authorization": "Basic " + base64.b64encode(bytes('{}:{}'.format(settings.BUYBOT_USERNAME, settings.BUYBOT_PASSWORD), encoding="raw_unicode_escape")).decode()  # NOQA
+        },
+        json={ "note": "Preprocessed by Playwright Bot", "flag": "Walmart Prcessing Rebuy"}
+    )
+    return response.json()
+
+def set_cant_ship_to_address(ds_order_id):
+    url = settings.UPDATE_DS_ORDER_INFO_URL.format(ds_order_id=ds_order_id)
+    response = requests.put(
+        url,
+        headers={
+            "Authorization": "Basic " + base64.b64encode(bytes('{}:{}'.format(settings.BUYBOT_USERNAME, settings.BUYBOT_PASSWORD), encoding="raw_unicode_escape")).decode()  # NOQA
+        },
+        json={ "note": "Preprocessed by Playwright Bot", "flag": "Cant Ship to Address"}
+    )
+    return response.json()
 
 def get_proxy_ips(supplier_id):
     url = settings.GET_PROXIES_URL.format(supplier_id=supplier_id)
