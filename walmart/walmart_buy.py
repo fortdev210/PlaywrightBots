@@ -2,6 +2,7 @@ import re
 
 from .walmart_base import WalmartBase
 from settings import LOGGER, check_within_day_order
+from libs.utils import gift_card_get_next_card, gift_card_send_total_price, gift_card_send_current_card_info
 
 
 class WalmartBuy(WalmartBase):
@@ -168,3 +169,130 @@ class WalmartBuy(WalmartBase):
             self.insert_value('[id="state"]', self.order_info['state'])
             self.insert_value('[id="phone"]', self.order_info['phoneNum'])
             self.insert_value('[id="email"]', self.order_info['email'])
+        
+    def send_total_order_price(self):
+        try:
+            total_price = self.page.inner_text('[data-automation-id="pos-grand-total-amount"]')
+            total_price = total_price.replace('$','')
+            gift_card_send_total_price(self.order_info['id'], total_price)
+        except:
+            LOGGER.error('Error sending total price of order to db.')
+        
+    def add_new_gift_card(self, id):
+        LOGGER.info(f'Adding {id+1}th gift card using api...')
+        if id != 0:
+            # click add new gift card button
+            self.wait_element_loading('[data-automation-id="payment-add-new-gift-card"]')
+            self.sleep(2)
+            self.click_element('[data-automation-id="payment-add-new-gift-card"]')
+        new_gift_card = gift_card_get_next_card(self.order_info['id'])
+        self.wait_element_loading('[data-automation-id="enter-gift-card-number"]')
+        self.insert_value('[data-automation-id="enter-gift-card-number"]', new_gift_card.get('cardNumber'))
+        self.wait_element_loading('[data-tl-id="submit"]')
+        self.sleep(2)
+        self.click_element('[data-tl-id="submit"]')
+        self.sleep(5)
+        content = """(i) => {
+            value = document
+                .querySelectorAll('[class="price gc-amount-paid-price"]')
+                [i].querySelector('[class="visuallyhidden"]').innerText;
+            value = value.replace("$", "");
+            return value;
+        },i"""
+        used_gift_card_amount = self.page.evaluate(content)
+        LOGGER.info(f"Gift card number is {new_gift_card.get('cardNumber')} and amount is {used_gift_card_amount}")
+        
+        try:
+            gift_card_send_current_card_info(self.order_info['id'], new_gift_card.get('cardNumber'), used_gift_card_amount)
+        except:
+            LOGGER.error('Error while sending current card info.')
+
+        balance_status = self.page.query_selector('[data-automation-id="pos-balance-due"]')
+
+        if balance_status == None:
+            return True
+        
+        self.wait_element_loading('[data-automation-id="payment-add-new-gift-card"]')
+        self.sleep(2)
+        self.click_element('[data-automation-id="payment-add-new-gift-card"]')
+        return False
+    
+    def get_already_added_gift_cards(self):
+        try:
+            self.wait_element_loading('[class="gift-card-tile"]')
+            number = len(self.page.query_selector_all('[class="gift-card-tile"]'))
+            LOGGER.info(f'{number} gift cards are already added.')
+
+            # apply each card to order
+            for i in range(number):
+                try:
+                    content = """(i)=> {
+                        document.querySelectorAll('[class="gift-card-tile"]')[i].querySelector('[type="checkbox"]').click();
+                    }, [i]"""
+                    self.page.evaluate(content)
+                    self.sleep(4)
+                except:
+                    LOGGER.error(f'Cant apply {i}th card again')
+            return number
+        except:
+            return 0
+
+    def pay_with_gift_cards(self):
+        try:
+            self.wait_element_loading('[id="payment-option-radio-1"]', 20000)
+            self.select_payment_method()
+        except:
+            self.prepare_for_checkout()
+            self.select_payment_method()
+        self.sleep(3)
+        self.send_total_order_price()
+        number_of_cards_applied = self.get_already_added_gift_cards()
+        for i in range(number_of_cards_applied, self.number_of_cards_to_use):
+            pay_done = self.add_new_gift_card(i)
+            if pay_done == True:
+                LOGGER.info("Good news! Your order total is covered.")
+                break
+        
+        self.wait_element_loading('[data-automation-id="submit-payment-gc"]')
+        self.sleep(1)
+        self.click_element('[data-automation-id="submit-payment-gc"]')
+    
+    def pay_with_cash(self):
+        try:
+            self.wait_element_loading('[id="payment-option-radio-1"]', 20000)
+            self.select_payment_method()
+        except:
+            self.prepare_for_checkout()
+            self.select_payment_method()
+        
+        self.fill_cash_modal_form()
+        self.sleep(2)
+
+        try:
+            self.wait_element_loading('[data-automation-id="review-your-order-cash"]')
+            self.sleep(2)
+            self.click_element('[data-automation-id="review-your-order-cash"]')
+            LOGGER.info("Checkout successfully.")
+        except:
+            LOGGER.error("Error while attempting the Pay with cash button")
+        
+    def checkout(self):
+        if self.payment == 'GiftCard':
+            LOGGER.info('Paying with gift card')
+            self.pay_with_gift_cards()
+        else:
+            LOGGER.info('Paying with cash card')
+            self.pay_with_cash()
+    
+    def place_order(self):
+        self.sleep(3)
+        self.wait_element_loading('[data-automation-id="summary-place-holder"]')
+        self.click_element('[button[class*="auto-submit-place-order"]]')
+    
+    def get_order_number(self):
+        self.sleep(3)
+        self.wait_element_loading('[class="thankyou-main-heading"]')
+        order_info = self.page.inner_text('[class="thankyou-main-heading"]')
+        order_number = order_info.split('#')[1]
+        LOGGER.info(f'Order number is {order_number}')
+        return order_number
