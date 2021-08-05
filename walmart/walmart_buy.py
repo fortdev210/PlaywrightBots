@@ -7,6 +7,7 @@ from settings import LOGGER, check_within_day_order
 class WalmartBuy(WalmartBase):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+        self.payment = kwargs.get('payment_method')
 
     def check_order_processed(self):
         self.wait_element_loading('[id="cart-active-cart-heading"]', 20000)
@@ -117,3 +118,53 @@ class WalmartBuy(WalmartBase):
             LOGGER.info("Can ship to this address")
             return False
    
+    def handle_gift_options(self):
+        try:
+            self.wait_element_loading('[class*="gifting-module-body"]', 20000)
+            self.wait_element_loading('[name="recipientEmail"]')
+            self.insert_value('[name="recipientEmail"]', self.order_info['email'])
+            self.wait_element_loading('[name="senderName"]')
+            self.reinsert_value('[name="senderName"]',self.order_info['lastName'])
+            self.wait_element_loading('[data-automation-id="gift-message"]')
+            self.reinsert_value('[data-automation-id="gift-message"]', "...")
+            self.wait_element_loading('[data-automation-id="gifting-submit"]')
+            self.click_element('[data-automation-id="gifting-submit"]')
+            LOGGER.info("Successfully inserted gift message.")
+        except:
+            LOGGER.info("No gift message.")
+
+    def prepare_for_checkout(self):
+        self.continue_steps()
+        self.confirm_address()
+        self.check_address_confirmed()
+        self.check_ship_address()
+        self.handle_gift_options()
+    
+    def select_payment_method(self):
+        if self.payment == 'GiftCard':
+            self.click_element('[id="payment-option-radio-1"]')
+        else:
+            self.click_element('[id="payment-option-radio-2"]')
+            self.wait_element_loading('[class*="cash-payment-option"]')
+            content = """() => {
+                document.querySelector('[class*="cash-payment-option"])
+                        .querySelector('button).click()
+            }"""
+            self.page.evaluate(content)
+            self.sleep(3)
+    
+    def fill_cash_modal_form(self):
+        self.wait_element_loading('[id="cash-modal-form"]')
+        # Check modal empty
+        input_text = self.page.inner_text('[id="firstName"]')
+        
+        if len(input_text) == 0:
+            self.insert_value('[id="firstName"]', self.order_info['firstName'])
+            self.insert_value('[id="lastName"]', self.order_info['lastName'])
+            self.insert_value('[id="addressLineOne"]', self.order_info['addressOne'])
+            self.insert_value('[id="addressLineTwo"]', self.order_info['addressTwo'])
+            self.insert_value('[id="city"]', self.order_info['city'])
+            self.insert_value('[id="postalCode"]', self.order_info['zipCode'])
+            self.insert_value('[id="state"]', self.order_info['state'])
+            self.insert_value('[id="phone"]', self.order_info['phoneNum'])
+            self.insert_value('[id="email"]', self.order_info['email'])
