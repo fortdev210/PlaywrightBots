@@ -116,8 +116,42 @@ def get_proxy_ips(supplier_id):
     )
     return response.json()
 
+def gift_card_send_total_price(ds_order_id, total_price):
+    url = settings.GIFT_CARD_SEND_TOTAL_URL.format(ds_order_id=ds_order_id)
+    response = requests.patch(
+        url,
+        headers={
+            "Authorization": "Basic " + base64.b64encode(bytes('{}:{}'.format(settings.BUYBOT_USERNAME, settings.BUYBOT_PASSWORD), encoding="raw_unicode_escape")).decode()  # NOQA
+        },
+        json={'supplier_site_total': total_price}
+    )
+    return response.json()
 
+def gift_card_send_current_card_info(ds_order_id, card_number, amount):
+    url = settings.GIFT_CARD_SEND_CURRENT_CARD_URL.format(ds_order_id=ds_order_id)
+    response = requests.patch(
+        url,
+        headers={
+            "Authorization": "Basic " + base64.b64encode(bytes('{}:{}'.format(settings.BUYBOT_USERNAME, settings.BUYBOT_PASSWORD), encoding="raw_unicode_escape")).decode()  # NOQA
+        },
+        json={'gift_cards': [{'card_number': card_number, 'amount': amount}]}
+    )
+    return response.json()
 
+def gift_card_get_next_card(ds_order_id):
+    url = settings.GIFT_CARD_GET_NEXT_CARD_URL.format(ds_order_id=ds_order_id)
+    response = requests.patch(
+        url,
+        headers={
+            "Authorization": "Basic " + base64.b64encode(bytes('{}:{}'.format(settings.BUYBOT_USERNAME, settings.BUYBOT_PASSWORD), encoding="raw_unicode_escape")).decode()  # NOQA
+        },
+        json={}
+    )
+    data = response.json()
+    card_info = {}
+    card_info['cardNumber'] = data.gift_card.split(',')[0]
+    card_info['amount'] = data.gift_card.split(',')[1]
+    return card_info
 
 def get_dsh_extension(target):
     if target.get('title') == 'STL Pro Dropship Helper' and target.get('type') == 'background_page':
