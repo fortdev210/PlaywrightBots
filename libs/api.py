@@ -1,0 +1,130 @@
+import requests
+import base64
+
+import settings
+
+
+class STLPRO_API:
+    def __init__(self):
+        self._headers = {
+            "Authorization": "Basic " + base64.b64encode(
+                bytes('{}:{}'.format(
+                    settings.BUYBOT_USERNAME,
+                    settings.BUYBOT_PASSWORD),
+                    encoding="raw_unicode_escape")
+            ).decode()
+        }
+
+    def get_ds_orders(self, supplier_id):
+        url = settings.GET_DS_ORDERS_URL.format(supplier_id=supplier_id)
+        response = requests.get(
+            url,
+            headers=self._headers
+        )
+        return response.json()
+
+    def update_ds_order(self, ds_order_id, data):
+        url = settings.UPDATE_DS_ORDER_INFO_URL.format(ds_order_id=ds_order_id)
+        response = requests.get(
+            url,
+            headers=self._headers,
+            json={'data': data, 'confirmed_by': settings.CONFIRMED_BY}
+        )
+        return response.json()
+
+    def put_email_in_prep(self, ds_order_id, email):
+        url = settings.SET_ORDER_FLAG_URL.format(ds_order_id=ds_order_id)
+        response = requests.put(
+            url,
+            headers=self._headers,
+            json={'flag': 'Walmart Processing', 'buyer_email': email}
+        )
+        return response.json()
+
+    def put_order_in_process(self, ds_order_id):
+        url = settings.SET_ORDER_FLAG_URL.format(ds_order_id=ds_order_id)
+        response = requests.put(
+            url,
+            headers=self._headers,
+            json={'flag': 'Walmart Processing'}
+        )
+        return response.json()
+
+    def remove_email_from_prep(self, ds_order_id):
+        url = settings.SET_ORDER_FLAG_URL.format(ds_order_id=ds_order_id)
+        response = requests.put(
+            url,
+            headers=self._headers,
+            json={
+                "note": "Preprocessed by Playwright Bot",
+                "flag": "Walmart Processing", "buyer_email_prep": None
+            }
+        )
+        return response.json()
+
+    def put_order_in_rebuy(self, ds_order_id):
+        url = settings.SET_ORDER_FLAG_URL.format(ds_order_id=ds_order_id)
+        response = requests.put(
+            url,
+            headers=self._headers,
+            json={
+                "note": "Preprocessed by Playwright Bot",
+                "flag": "Walmart Prcessing Rebuy"
+            }
+        )
+        return response.json()
+
+    def set_cant_ship_to_address(self, ds_order_id):
+        url = settings.SET_ORDER_FLAG_URL.format(ds_order_id=ds_order_id)
+        response = requests.put(
+            url,
+            headers=self._headers,
+            json={
+                "note": "Preprocessed by Playwright Bot",
+                "flag": "Cant Ship to Address"
+            }
+        )
+        return response.json()
+
+    def get_proxy_ips(self, supplier_id):
+        url = settings.GET_PROXIES_URL.format(supplier_id=supplier_id)
+        response = requests.get(
+            url,
+            headers=self._headers
+        )
+        return response.json()
+
+    def gift_card_send_total_price(self, ds_order_id, total_price):
+        url = settings.GIFT_CARD_SEND_TOTAL_URL.format(ds_order_id=ds_order_id)
+        response = requests.patch(
+            url,
+            headers=self._headers,
+            json={'supplier_site_total': total_price}
+        )
+        return response.json()
+
+    def gift_card_send_current_card_info(
+            self, ds_order_id, card_number, amount):
+        url = settings.GIFT_CARD_SEND_CURRENT_CARD_URL.format(
+            ds_order_id=ds_order_id)
+        response = requests.patch(
+            url,
+            headers=self._headers,
+            json={'gift_cards': [
+                {'card_number': card_number, 'amount': amount}]}
+        )
+        return response.json()
+
+    def gift_card_get_next_card(self, ds_order_id):
+        url = settings.GIFT_CARD_GET_NEXT_CARD_URL.format(
+            ds_order_id=ds_order_id)
+        response = requests.patch(
+            url,
+            headers=self._headers,
+            json={}
+        )
+        data = response.json()
+        card_info = {}
+        card_info['cardNumber'] = data.gift_card.split(',')[0]
+        card_info['amount'] = data.gift_card.split(',')[1]
+        return card_info

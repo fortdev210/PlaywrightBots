@@ -2,4 +2,6 @@
 exclude =
     .git,
     __pycache__,
-    settings
+    settings,
+    venv,
+    walmart
