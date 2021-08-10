@@ -1,3 +1,5 @@
+import random
+
 from libs.bot_manager import BotManager
 from settings import (LOGGER, WALMART_PASSWORD,
                       WALMART_OLD_PASSWORDS, WALMART_REG_LINK)
@@ -53,6 +55,24 @@ class WalmartBase(BotManager):
         self.wait_element_loading('[data-automation-id="signup-submit-btn"]')
         self.click_element('[data-automation-id="signup-submit-btn"]')
 
+    def captcha_detected(self):
+        if self.page.is_visible('div[class="captcha re-captcha"]'):
+            return True
+        return False
+
+    @staticmethod
+    def get_random_url():
+        urls = [
+            'https://www.walmart.com/account/login',
+            'https://www.walmart.com/account/login?tid=0&returnUrl=%2F',
+            'https://www.walmart.com/account/login?tid=0&returnUrl=%2Fcp%2Felectronics%2F3944',  # NOQA
+            'https://www.walmart.com/account/login?tid=0&returnUrl=%2Fbrowse%2Felectronics%2Ftouchscreen-laptops%2F3944_3951_1089430_1230091_1101633',  # NOQA
+            'https://www.walmart.com/account/login?tid=0&returnUrl=%2Flists',
+            'https://www.walmart.com/account/login?tid=0&returnUrl=%2Feasyreorder%3FeroType%3Dlist',  # NOQA
+        ]
+        url = random.choice(urls)
+        return url
+
     def cancel_extra_item(self, extra_item_number):
         content = """
             ([extraItemNumber]) => {
@@ -69,7 +89,7 @@ class WalmartBase(BotManager):
 
         if 'arrives by' in extra_item_status.lower():
             content = """
-                (extraItemNumber) => {
+                ([extraItemNumber]) => {
                     const selector = `[href=\"/ip/${extraItemNumber}\"]`;
                     const parent = document.querySelector(
                         [selector]).parentElement.parentElement.
@@ -81,8 +101,8 @@ class WalmartBase(BotManager):
                         .click();
                     } catch (error) {
                     }
-                }, extraItemNumber"""
-            self.page.evaluate(content)
+                }"""
+            self.page.evaluate(content, [extra_item_number])
             self.sleep(3)
 
             try:

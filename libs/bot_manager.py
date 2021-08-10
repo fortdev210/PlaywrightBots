@@ -98,9 +98,11 @@ class BotManager:
 
     def go_to_link(self, link):
         self.page.goto(link)
+        self.page.wait_for_timeout(random.randint(1000, 5000))
 
     def insert_value(self, selector, value):
         self.page.type(selector, value, delay=random.randint(100, 1000))
+        self.page.wait_for_timeout(random.randint(1000, 5000))
 
     def wait_element_loading(self, selector, time=DEFAULT_WAIT_TIME):
         self.page.wait_for_selector(selector, timeout=time)
@@ -122,6 +124,7 @@ class BotManager:
 
     def click_element(self, selector):
         self.page.click(selector, delay=random.randint(0, 10))
+        self.page.wait_for_timeout(random.randint(1000, 3000))
 
     def select_option(self, selector, **kwargs):
         if kwargs.get('option_selector') == 'label':
@@ -130,6 +133,7 @@ class BotManager:
             self.page.select(selector, index=kwargs.get('option_value'))
         elif kwargs.get('option_selector') == 'value':
             self.page.select(selector, value=kwargs.get('option_value'))
+        self.page.wait_for_timeout(random.randint(1000, 3000))
 
     def manage_proxy_by_dsh(self, flag, proxy_info=None):
         targets = self.browser.background_pages()

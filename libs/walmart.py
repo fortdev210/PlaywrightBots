@@ -13,7 +13,6 @@ def try_to_scrape_walmart_order(order, page, password):
         'https://www.walmart.com/account/login?tid=0&returnUrl=%2Fbrowse%2Felectronics%2Ftouchscreen-laptops%2F3944_3951_1089430_1230091_1101633',  # NOQA
         'https://www.walmart.com/account/login?tid=0&returnUrl=%2Flists',
         'https://www.walmart.com/account/login?tid=0&returnUrl=%2Feasyreorder%3FeroType%3Dlist',  # NOQA
-
     ]
     # page.goto('https://bing.com')
     # page.fill('input[id="sb_form_q"]', 'walmart.com')
