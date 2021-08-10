@@ -220,13 +220,14 @@ class WalmartBuy(WalmartBase):
         self.sleep(2)
         self.click_element('[data-tl-id="submit"]')
         self.sleep(5)
-        content = "() => {\
-            let value = document\.querySelectorAll(\
-                '[class=\"price gc-amount-paid-price\"]')[{i}]\
-                .querySelector('[class=\"visuallyhidden\"]').innerText \
-            value = value.replace(\"$\", \"\");\
-            return value;}".format(i=id)
-        used_gift_card_amount = self.page.evaluate(content)
+        content = """([i]) => {
+            let value = document.querySelectorAll(
+                '[class="price gc-amount-paid-price"]')[{i}]
+                .querySelector('[class="visuallyhidden"]').innerText
+            value = value.replace("$", "");\
+            return value;
+        }"""
+        used_gift_card_amount = self.page.evaluate(content, [id])
         LOGGER.info(
             f"Gift card number is {new_gift_card.get('cardNumber')} \
              and amount is {used_gift_card_amount}")
@@ -262,10 +263,14 @@ class WalmartBuy(WalmartBase):
             # apply each card to order
             for i in range(number):
                 try:
-                    content = "()=> {document.querySelectorAll(\
-                            '[class=\"gift-card-tile\"]'\
-                        )[{i}].querySelector('[type=\"checkbox\"]').click()}".format(i=i)
-                    self.page.evaluate(content)
+                    content = """
+                        ([i])=> {
+                            document.querySelectorAll(
+                                '[class="gift-card-tile"]'
+                            )[{i}].querySelector(
+                                '[type=\"checkbox\"]').click()
+                    """
+                    self.page.evaluate(content, [i])
                     self.sleep(4)
                 except Exception:
                     LOGGER.error(f'Cant apply {i}th card again')

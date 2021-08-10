@@ -54,17 +54,17 @@ class WalmartBase(BotManager):
         self.click_element('[data-automation-id="signup-submit-btn"]')
 
     def cancel_extra_item(self, extra_item_number):
-        content = "\
-            () => {\
-                const selector = '[href=\"/ip/{extraItemNumber}\"]'; \
-                const parent = document.querySelector([selector]).\
-                    parentElement.parentElement.parentElement.\
-                    parentElement.parentElement;\
-                return parent.querySelector(\
-                    '[data-automation-id=\"shipment-status\"]').innerText; \
-            }\
-        ".format(extraItemNumber=extra_item_number)
-        extra_item_status = self.page.evaluate(content)
+        content = """
+            ([extraItemNumber]) => {
+                const selector = `[href="/ip/${extraItemNumber}"]`;
+                const parent = document.querySelector([selector]).
+                    parentElement.parentElement.parentElement.
+                    parentElement.parentElement;
+                return parent.querySelector(
+                    '[data-automation-id="shipment-status"]').innerText;
+            }
+        """
+        extra_item_status = self.page.evaluate(content, [extra_item_number])
         LOGGER.info(f'Extra item status is {extra_item_status}')
 
         if 'arrives by' in extra_item_status.lower():

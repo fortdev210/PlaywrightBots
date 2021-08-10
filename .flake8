@@ -4,4 +4,3 @@ exclude =
     __pycache__,
     settings,
     venv,
-    walmart
