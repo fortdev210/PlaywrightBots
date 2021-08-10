@@ -52,6 +52,7 @@ class BotManager:
         self._proxy_data = proxy_data
 
     def create_browser(self):
+        self.start_playwright()
         if self.use_chrome:
             browser = self.playwright.chromium.launch_persistent_context(
                 headless=False,
@@ -84,6 +85,11 @@ class BotManager:
                 }
             )
             self.browser = browser
+
+    def close_browser(self):
+        self.browser.close()
+        self.browser = None
+        self.stop_playwright()
 
     def open_new_page(self):
         page = self.browser.new_page()
