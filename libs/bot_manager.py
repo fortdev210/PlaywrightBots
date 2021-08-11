@@ -6,8 +6,8 @@ import time
 from playwright.sync_api import sync_playwright
 
 from settings import (LUMINATI_USERNAME, LUMINATI_PASSWORD,
-                      LUMINATI_DOMAIN, PROXY_USER, PROXY_PASS)
-from constants import DEFAULT_WAIT_TIME
+                      LUMINATI_DOMAIN)
+import constants
 
 
 class BotManager:
@@ -46,8 +46,8 @@ class BotManager:
         if use_proxy is True:
             proxy_data = {
                 "server": '{}:{}'.format(self.proxy_ip, self.proxy_port),
-                "username": PROXY_USER,
-                "password": PROXY_PASS
+                # "username": PROXY_USER,
+                # "password": PROXY_PASS
             }
         self._proxy_data = proxy_data
 
@@ -110,7 +110,8 @@ class BotManager:
         self.page.type(selector, value, delay=random.randint(100, 1000))
         self.page.wait_for_timeout(random.randint(1000, 5000))
 
-    def wait_element_loading(self, selector, time=DEFAULT_WAIT_TIME):
+    def wait_element_loading(self, selector,
+                             time=constants.WaitTimeout.DEFAULT_WAIT_TIME):
         self.page.wait_for_selector(selector, timeout=time)
 
     def reinsert_value(self, selector, value):
@@ -162,4 +163,5 @@ class BotManager:
             dsh_extension.evaluate(content)
 
     def sleep(seconds):
+        print("seconds", seconds)
         time.sleep(seconds)

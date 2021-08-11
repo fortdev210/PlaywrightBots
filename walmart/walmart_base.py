@@ -23,7 +23,8 @@ class WalmartBase(BotManager):
         self.page.click('[data-automation-id="signup-sign-in-btn"]')
 
     def signin_walmart(self):
-        self.insert_value('[id="email"]', self.order_info['email'])
+        email = self.order_info['email'] or self.order_info['username']
+        self.insert_value('[id="email"]', email)
         try:
             self.wait_element_loading(
                 '[data-automation-id="signin-continue-submit-btn"]')

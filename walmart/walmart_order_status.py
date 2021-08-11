@@ -51,6 +51,7 @@ class WalmartOrderStatus(WalmartBase):
     def scrape_orders_state(self):
         orders = STLPRO_API().get_ds_orders(
             supplier_id=constants.Supplier.WALMART_CODE)
+
         ips = STLPRO_API().get_proxy_ips(
             supplier_id=constants.Supplier.WALMART_CODE)['results']
         orders = orders[self.start:self.end]
