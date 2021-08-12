@@ -28,6 +28,17 @@ def get_ds_orders(supplier_id):
     return response.json()
 
 
+def get_category_suppliers(supplier_id, limit, offset):
+    url = settings.GET_CATEGORY_SUPPLIER_URL.format(supplier_id=supplier_id, limit=limit, offset=offset)
+    response = requests.get(
+        url,
+        headers={
+            "Authorization": "Basic " + base64.b64encode(bytes('{}:{}'.format(settings.BUYBOT_USERNAME, settings.BUYBOT_PASSWORD), encoding="raw_unicode_escape")).decode()  # NOQA
+        }
+    )
+    return response.json()['results']
+
+
 def update_ds_order(ds_order_id, data):
     url = settings.UPDATE_DS_ORDER_INFO_URL.format(ds_order_id=ds_order_id)
     response = requests.post(

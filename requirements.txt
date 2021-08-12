@@ -1,6 +1,7 @@
 playwright==1.13.1
 requests==2.26.0
 us==2.0.2
+furl==2.1.2
 
 # pre-commit
 pre-commit==2.13.0
