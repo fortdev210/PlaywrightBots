@@ -110,5 +110,5 @@ class BaseScraper(object):
                     self.browser.close()
                     LOGGER.exception(msg=str(ex), exc_info=True)
                     raise ex
-            raise Exception('Max retry exceed!')
-
+            LOGGER.exception('Max retry exceed!')
+            return False
