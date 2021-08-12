@@ -1,6 +1,7 @@
 import random
 
 from settings import LOGGER
+from libs.exception import CaptchaResolveException
 
 
 def resolve_captcha(page, ip):
@@ -15,4 +16,6 @@ def resolve_captcha(page, ip):
         page_frame.click('div[role="main"]', delay=random.randint(15000, 20000))  # NOQA
         page_frame.wait_for_timeout(random.randint(5000, 10000))
         LOGGER.info("resolve captcha {} {} times".format(ip, i))
+    if i == 3:
+        raise CaptchaResolveException
     LOGGER.info("[Captcha] resolve end {}".format(ip))

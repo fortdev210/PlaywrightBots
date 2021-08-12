@@ -55,11 +55,21 @@ mkdir -p logs/homedepot/
 4. `libs`: all needed libraries, customized code
 
 # Start Walmart scraper
+
+## Start Walmart product scraper
 - Run: 
   
-  `python walmart/wm_scraper_buyproxies.py active_status(0 or 1) start_range end_range`
+  `python walmart/product_scraper.py active_status(0 or 1) start_range end_range`
   
 - Example 
   
-`python walmart/wm_scraper_buyproxies.py 0 0 20`
+`python walmart/product_scraper.py 0 0 20`
 
+## Start Walmart category detail scraper
+- Run: 
+  
+  `python walmart/category_scraper.py start_range end_range`
+  
+- Example 
+  
+`python walmart/category_scraper.py 0 20`
