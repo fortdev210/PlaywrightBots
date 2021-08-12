@@ -53,3 +53,13 @@ mkdir -p logs/homedepot/
 2. `homedepot`: all HomeDepot bots
 3. `walmart`: all Walmart bots
 4. `libs`: all needed libraries, customized code
+
+# Start Walmart scraper
+- Run: 
+  
+  `python walmart/wm_scraper_buyproxies.py active_status(0 or 1) start_range end_range`
+  
+- Example 
+  
+`python walmart/wm_scraper_buyproxies.py 0 0 20`
+
