@@ -6,6 +6,7 @@ import traceback
 from copy import deepcopy
 
 from furl import furl
+from playwright._impl._api_types import TimeoutError
 
 import constants
 import settings
