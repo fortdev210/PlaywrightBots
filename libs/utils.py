@@ -39,6 +39,21 @@ def get_category_suppliers(supplier_id, limit, offset):
     return response.json()['results']
 
 
+def update_product_count(category_supplier_id, product_count):
+    url = settings.UPDATE_CATEGORY_SUPPLIER_URL.format(
+        category_supplier_id=category_supplier_id
+    )
+    response = requests.patch(
+        url,
+        headers={
+            "Authorization": "Basic " + base64.b64encode(bytes('{}:{}'.format(settings.BUYBOT_USERNAME, settings.BUYBOT_PASSWORD), encoding="raw_unicode_escape")).decode()  # NOQA
+        },
+        json={'product_count': product_count}
+    )
+    settings.LOGGER.info(response.json())
+    return response.json()
+
+
 def update_ds_order(ds_order_id, data):
     url = settings.UPDATE_DS_ORDER_INFO_URL.format(ds_order_id=ds_order_id)
     response = requests.post(

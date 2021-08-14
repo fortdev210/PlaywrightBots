@@ -238,11 +238,14 @@ if __name__ == "__main__":
     offset = int(start)
     limit = int(end) - int(start)
     while True:
-        scraper = WMProductScraper(
-            supplier_id=constants.Supplier.WALMART_CODE,
-            active=active,
-            offset=offset,
-            limit=limit
-        )
-        scraper.run()
+        try:
+            scraper = WMProductScraper(
+                supplier_id=constants.Supplier.WALMART_CODE,
+                active=active,
+                offset=offset,
+                limit=limit
+            )
+            scraper.run()
+        except Exception as ex:
+            LOGGER.exception(str(ex), exc_info=True)
         time.sleep(10)
