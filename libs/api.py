@@ -128,3 +128,20 @@ class STLPRO_API:
         card_info['cardNumber'] = data.gift_card.split(',')[0]
         card_info['amount'] = data.gift_card.split(',')[1]
         return card_info
+
+    def get_email_supplier(self):
+        url = settings.GET_EMAIL_SUPPLIER
+        response = requests.get(
+            url,
+            headers=self._headers
+        )
+        return response.json()
+
+    def update_email_status(self, email, status):
+        url = settings.UPDATE_EMAIL_STATUS + email.get('id')
+        response = requests.patch(
+            url,
+            headers=self._headers,
+            json={'status': status}
+        )
+        return response.json()
