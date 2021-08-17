@@ -107,7 +107,7 @@ class BotManager:
         self.page.wait_for_timeout(random.randint(1000, 5000))
 
     def insert_value(self, selector, value):
-        self.page.type(selector, value, delay=random.randint(100, 1000))
+        self.page.type(selector, value, delay=random.randint(10, 100))
         self.page.wait_for_timeout(random.randint(1000, 5000))
 
     def wait_element_loading(self, selector,
@@ -162,6 +162,5 @@ class BotManager:
             content = """() => { proxyOffWebF()}"""
             dsh_extension.evaluate(content)
 
-    def sleep(seconds):
-        print("seconds", seconds)
+    def sleep(self, seconds):
         time.sleep(seconds)

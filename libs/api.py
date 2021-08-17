@@ -92,7 +92,8 @@ class STLPRO_API:
             url,
             headers=self._headers
         )
-        return response.json()
+        res = response.json()
+        return res.get('results')
 
     def gift_card_send_total_price(self, ds_order_id, total_price):
         url = settings.GIFT_CARD_SEND_TOTAL_URL.format(ds_order_id=ds_order_id)
@@ -135,7 +136,8 @@ class STLPRO_API:
             url,
             headers=self._headers
         )
-        return response.json()
+        res = response.json()
+        return res.get('results')
 
     def update_email_status(self, email, status):
         url = settings.UPDATE_EMAIL_STATUS + email.get('id')

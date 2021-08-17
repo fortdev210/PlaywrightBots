@@ -2,7 +2,8 @@ import random
 
 from libs.bot_manager import BotManager
 from settings import (LOGGER, WALMART_PASSWORD,
-                      WALMART_OLD_PASSWORDS, WALMART_REG_LINK)
+                      WALMART_OLD_PASSWORDS, WALMART_REG_LINK,
+                      WALMART_ACCOUNT_LINK, WALMART_ORDER_HISTORY_LINK)
 
 
 class WalmartBase(BotManager):
@@ -12,7 +13,7 @@ class WalmartBase(BotManager):
 
     def open_sign_up_page(self):
         if self.browser is None:
-            self.run_browser()
+            self.create_browser()
         self.open_new_page()
         self.go_to_link(WALMART_REG_LINK)
 
@@ -22,8 +23,8 @@ class WalmartBase(BotManager):
             '[data-automation-id="signup-sign-in-btn"]')
         self.page.click('[data-automation-id="signup-sign-in-btn"]')
 
-    def signin_walmart(self):
-        email = self.order_info['email'] or self.order_info['username']
+    def signin_walmart(self, email):
+        self.wait_element_loading('[id="sign-in-form"]')
         self.insert_value('[id="email"]', email)
         try:
             self.wait_element_loading(
@@ -32,17 +33,17 @@ class WalmartBase(BotManager):
             self.press_enter()
             self.insert_value('[id="password"]', WALMART_PASSWORD)
             self.press_enter()
-        except TimeoutError:
+        except Exception:
             LOGGER.info('========== Old Signin Page ==========')
             self.insert_value('[id="password"]', WALMART_PASSWORD)
             self.click_element('[data-automation-id="signin-submit-btn"]')
             try:
-                self.page.wait_element_loading(
+                self.wait_element_loading(
                     "text=Your password and email do not match.")
                 self.reinsert_value('[id="password"]',
                                     WALMART_OLD_PASSWORDS[0])
                 self.click_element('[data-automation-id="signin-submit-btn"]')
-            except TimeoutError:
+            except Exception:
                 pass
 
     def signup_walmart(self):
@@ -60,6 +61,24 @@ class WalmartBase(BotManager):
         if self.page.is_visible('div[class="captcha re-captcha"]'):
             return True
         return False
+
+    def change_password(self, current_password):
+        LOGGER.info("Change password")
+        self.go_to_link(WALMART_ACCOUNT_LINK)
+        self.sleep(3)
+        self.wait_element_loading(
+            '[data-automation-id="password-edit-button"]')
+        self.click_element('[data-automation-id="password-edit-button"]')
+        try:
+            self.wait_element_loading('[name="currentPassword"]')
+            self.insert_value('[name="currentPassword"]', current_password)
+            self.insert_value('[name="newPassword"]', WALMART_PASSWORD)
+            self.click_element('[data-automation-id="password-submit-button"]')
+        except Exception:
+            LOGGER.error("Error while changing password")
+
+    def open_order_history(self):
+        self.go_to_link(WALMART_ORDER_HISTORY_LINK)
 
     @staticmethod
     def get_random_url():
