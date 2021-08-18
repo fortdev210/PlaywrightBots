@@ -19,3 +19,4 @@ UPDATE_EMAIL_STATUS = BASE_URL + "v2/email_supplier_verify/"
 WALMART_REG_LINK = 'https://www.walmart.com/account/login'
 WALMART_ACCOUNT_LINK = 'https://www.walmart.com/account/profile'
 WALMART_ORDER_HISTORY_LINK = "https://www.walmart.com/account/wmpurchasehistory"
+WALMART_CART_LINK = "https://www.walmart.com/cart"
