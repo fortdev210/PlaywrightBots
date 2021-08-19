@@ -1,10 +1,11 @@
 import re
 import json
+from datetime import datetime
 
 from walmart.walmart_base import WalmartBase
 from libs.api import STLPRO_API
 from constants import Supplier, EmailStatus
-from settings import LOGGER
+from settings import LOGGER, DATETIME_FORMAT
 
 
 class WmEmailVerifier(WalmartBase):
@@ -92,7 +93,9 @@ class WmEmailVerifier(WalmartBase):
         except Exception:
             LOGGER.info('No Gift cards available.')
 
-        initial_account_verifide = ''
+        now = datetime.now()
+        initial_account_verifide = now.strftime(DATETIME_FORMAT)
+        STLPRO_API().update_email_status(self.email, EmailStatus.GOOD)
         print(initial_account_verifide)
 
     def run(self):
@@ -109,6 +112,7 @@ class WmEmailVerifier(WalmartBase):
             self.open_cart_page()
             self.remove_items_in_cart()
             self.delete_address_registry()
+            self.remove_gift_cards()
 
 
 if __name__ == '__main__':
