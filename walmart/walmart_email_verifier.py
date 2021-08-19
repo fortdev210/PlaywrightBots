@@ -1,5 +1,6 @@
 import re
 import json
+import random
 from datetime import datetime
 
 from walmart.walmart_base import WalmartBase
@@ -97,6 +98,7 @@ class WmEmailVerifier(WalmartBase):
         initial_account_verifide = now.strftime(DATETIME_FORMAT)
         STLPRO_API().update_email_status(self.email, EmailStatus.GOOD)
         print(initial_account_verifide)
+        self.close_browser()
 
     def run(self):
         self.open_sign_up_page()
@@ -118,10 +120,12 @@ class WmEmailVerifier(WalmartBase):
 if __name__ == '__main__':
     emails = STLPRO_API().get_email_supplier()
     proxies = STLPRO_API().get_proxy_ips(Supplier.WALMART_CODE)
-    proxy_ip = proxies[0].get('ip')
-    proxy_port = proxies[0].get('port')
-    email = emails[0].get('email_value')
-    bot = WmEmailVerifier(use_chrome=False, use_proxy=True,
-                          proxy_ip=proxy_ip, proxy_port=proxy_port,
-                          email=email)
-    bot.run()
+    for email in emails:
+        proxy = random.choice(proxies)
+        proxy_ip = proxy.get('ip')
+        proxy_port = proxy.get('port')
+        email = email.get('email_value')
+        bot = WmEmailVerifier(use_chrome=False, use_proxy=True,
+                              proxy_ip=proxy_ip, proxy_port=proxy_port,
+                              email=email)
+        bot.run()
