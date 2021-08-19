@@ -140,7 +140,7 @@ class STLPRO_API:
         return res.get('results')
 
     def update_email_status(self, email, status):
-        url = settings.UPDATE_EMAIL_STATUS + email.get('id')
+        url = settings.UPDATE_EMAIL_STATUS + str(email.get('id'))
         response = requests.patch(
             url,
             headers=self._headers,

@@ -102,7 +102,7 @@ class WmEmailVerifier(WalmartBase):
 
     def run(self):
         self.open_sign_up_page()
-        self.signin_walmart(self.email)
+        self.signin_walmart(self.email.get('email_value'))
         self.open_order_history()
         order_data = self.get_order_data(self.page)
         is_canceled = self.check_order_canceled(order_data)
@@ -124,7 +124,7 @@ if __name__ == '__main__':
         proxy = random.choice(proxies)
         proxy_ip = proxy.get('ip')
         proxy_port = proxy.get('port')
-        email = email.get('email_value')
+
         bot = WmEmailVerifier(use_chrome=False, use_proxy=True,
                               proxy_ip=proxy_ip, proxy_port=proxy_port,
                               email=email)
