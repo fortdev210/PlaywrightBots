@@ -1,9 +1,11 @@
 import random
+
 from libs.bot_manager import BotManager
-from settings import (LOGGER, WALMART_PASSWORD,
-                      WALMART_OLD_PASSWORDS, WALMART_REG_LINK,
-                      WALMART_ACCOUNT_LINK, WALMART_ORDER_HISTORY_LINK,
-                      WALMART_CART_LINK)
+from settings import LOGGER, WALMART_PASSWORD, WALMART_OLD_PASSWORDS
+from settings.url import (
+    WALMART_REG_LINK,
+    WALMART_ACCOUNT_LINK, WALMART_ORDER_HISTORY_LINK,
+    WALMART_CART_LINK, WALMART_REGISTRY_LINK, WALMART_PAYMENT_METHODS_LINK)
 
 
 class WalmartBase(BotManager):
@@ -82,6 +84,12 @@ class WalmartBase(BotManager):
 
     def open_cart_page(self):
         self.go_to_link(WALMART_CART_LINK)
+
+    def open_registry_page(self):
+        self.go_to_link(WALMART_REGISTRY_LINK)
+
+    def open_payment_methods_page(self):
+        self.go_to_link(WALMART_PAYMENT_METHODS_LINK)
 
     @staticmethod
     def get_random_url():

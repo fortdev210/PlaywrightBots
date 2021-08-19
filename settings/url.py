@@ -20,3 +20,5 @@ WALMART_REG_LINK = 'https://www.walmart.com/account/login'
 WALMART_ACCOUNT_LINK = 'https://www.walmart.com/account/profile'
 WALMART_ORDER_HISTORY_LINK = "https://www.walmart.com/account/wmpurchasehistory"
 WALMART_CART_LINK = "https://www.walmart.com/cart"
+WALMART_REGISTRY_LINK = "https://www.walmart.com/lists/manage-events-registry-settings"
+WALMART_PAYMENT_METHODS_LINK = "https://www.walmart.com/account/creditcards"
