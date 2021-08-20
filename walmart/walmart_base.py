@@ -12,6 +12,9 @@ class WalmartBase(BotManager):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.order_info = kwargs.get('order_info')
+        self.should_change_password = False
+        self.wm_current_password = ''
+        self.is_bad_email = False
 
     def open_sign_up_page(self):
         if self.browser is None:
@@ -24,6 +27,19 @@ class WalmartBase(BotManager):
         self.page.wait_for_selector(
             '[data-automation-id="signup-sign-in-btn"]')
         self.page.click('[data-automation-id="signup-sign-in-btn"]')
+
+    def try_old_password(self, old_password, email):
+        self.wait_element_loading(
+            "text=Your password and email do not match.")
+        self.should_change_password = True
+        LOGGER.info('Trying with old password: %s', old_password)
+        self.reload_page()
+        self.wait_element_loading('[id="sign-in-form"]')
+        self.insert_value('[id="email"]', email)
+
+        self.insert_value('[id="password"]',
+                          old_password)
+        self.click_element('[data-automation-id="signin-submit-btn"]')
 
     def signin_walmart(self, email):
         self.wait_element_loading('[id="sign-in-form"]')
@@ -40,11 +56,17 @@ class WalmartBase(BotManager):
             self.insert_value('[id="password"]', WALMART_PASSWORD)
             self.click_element('[data-automation-id="signin-submit-btn"]')
             try:
-                self.wait_element_loading(
-                    "text=Your password and email do not match.")
-                self.reinsert_value('[id="password"]',
-                                    WALMART_OLD_PASSWORDS[0])
-                self.click_element('[data-automation-id="signin-submit-btn"]')
+                self.try_old_password(WALMART_OLD_PASSWORDS[0], email)
+                try:
+                    self.try_old_password(WALMART_OLD_PASSWORDS[1], email)
+                    try:
+                        self.wait_element_loading(
+                            "text=Your password and email do not match.")
+                        self.is_bad_email = True
+                    except Exception:
+                        self.wm_current_password = WALMART_OLD_PASSWORDS[1]
+                except Exception:
+                    self.wm_current_password = WALMART_OLD_PASSWORDS[0]
             except Exception:
                 pass
 
@@ -64,20 +86,24 @@ class WalmartBase(BotManager):
             return True
         return False
 
-    def change_password(self, current_password):
-        LOGGER.info("Change password")
-        self.go_to_link(WALMART_ACCOUNT_LINK)
-        self.sleep(3)
-        self.wait_element_loading(
-            '[data-automation-id="password-edit-button"]')
-        self.click_element('[data-automation-id="password-edit-button"]')
-        try:
-            self.wait_element_loading('[name="currentPassword"]')
-            self.insert_value('[name="currentPassword"]', current_password)
-            self.insert_value('[name="newPassword"]', WALMART_PASSWORD)
-            self.click_element('[data-automation-id="password-submit-button"]')
-        except Exception:
-            LOGGER.error("Error while changing password")
+    def change_password(self):
+        if self.should_change_password and not self.is_bad_email \
+                and self.wm_current_password:
+            LOGGER.info("Change password")
+            self.go_to_link(WALMART_ACCOUNT_LINK)
+            self.sleep(3)
+            self.wait_element_loading(
+                '[data-automation-id="password-edit-button"]')
+            self.click_element('[data-automation-id="password-edit-button"]')
+            try:
+                self.wait_element_loading('[name="currentPassword"]')
+                self.insert_value('[name="currentPassword"]',
+                                  self.wm_current_password)
+                self.insert_value('[name="newPassword"]', WALMART_PASSWORD)
+                self.click_element(
+                    '[data-automation-id="password-submit-button"]')
+            except Exception:
+                LOGGER.error("Error while changing password")
 
     def open_order_history(self):
         self.go_to_link(WALMART_ORDER_HISTORY_LINK)

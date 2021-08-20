@@ -139,11 +139,16 @@ class STLPRO_API:
         res = response.json()
         return res.get('results')
 
-    def update_email_status(self, email, status):
-        url = settings.UPDATE_EMAIL_STATUS + str(email.get('id'))
+    def update_email_status(self, id, status):
+        url = settings.UPDATE_EMAIL_STATUS + str(id)
         response = requests.patch(
             url,
             headers=self._headers,
-            json={'status': status}
+            data={'status': status}
         )
+        print(response)
         return response.json()
+
+
+if __name__ == '__main__':
+    STLPRO_API().update_email_status(120771, 2)

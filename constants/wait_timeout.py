@@ -1,3 +1,4 @@
 class WaitTimeout:
     DEFAULT_WAIT_TIME = 10000
     MAX_WAIT_TIME = 30000
+    MIN_WAIT_TIME = 3000

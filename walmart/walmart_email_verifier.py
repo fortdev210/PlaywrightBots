@@ -5,7 +5,7 @@ from datetime import datetime
 
 from walmart.walmart_base import WalmartBase
 from libs.api import STLPRO_API
-from constants import Supplier, EmailStatus
+from constants import Supplier, EmailStatus, WaitTimeout
 from settings import LOGGER, DATETIME_FORMAT
 
 
@@ -86,8 +86,16 @@ class WmEmailVerifier(WalmartBase):
             LOGGER.info('Gift card listed. Removing...')
             remove_btns = self.page.query_selector_all(
                 '[data-automation-id*="delete-gift-card-"]')
-            for btn in remove_btns:
+            for i in len(remove_btns):
+                btn = remove_btns[i]
                 btn.click()
+                try:
+                    self.wait_element_loading(
+                        f'[data-tl-id="confirm-delete{i}"]',
+                        WaitTimeout.MIN_WAIT_TIME)
+                    self.click(f'[data-tl-id="confirm-delete{i}"]')
+                except Exception:
+                    pass
                 self.sleep(2)
             LOGGER.info('Remove gift card.')
 
@@ -103,12 +111,22 @@ class WmEmailVerifier(WalmartBase):
     def run(self):
         self.open_sign_up_page()
         self.signin_walmart(self.email.get('email_value'))
+        if self.is_bad_email:
+            LOGGER.info('This email is bad.')
+            STLPRO_API().update_email_status(
+                self.email.get('id'), EmailStatus.BANNED)
+            self.close_browser()
+            return
+        self.change_password()
         self.open_order_history()
         order_data = self.get_order_data(self.page)
         is_canceled = self.check_order_canceled(order_data)
         if is_canceled:
             LOGGER.info('Order is canceled. Marking as banned.')
-            STLPRO_API().update_email_status(self.email, EmailStatus.BANNED)
+            STLPRO_API().update_email_status(
+                self.email.get('id'), EmailStatus.BANNED)
+            self.close_browser()
+            return
         else:
             LOGGER.info('Checking cart and removing items in the cart.')
             self.open_cart_page()

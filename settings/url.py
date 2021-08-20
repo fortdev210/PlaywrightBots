@@ -13,8 +13,8 @@ GIFT_CARD_GET_NEXT_CARD_URL = BASE_URL + \
 GET_PROXIES_URL = BASE_URL + "v2/ip_supplier/?is_potential_banned=false&is_buyproxies_ip=true&supplier={supplier_id}&limit=500&batch_id=order_status"  # NOQA
 CONFIRMED_BY = 5  # Playwright bot
 GET_EMAIL_SUPPLIER = BASE_URL + \
-    "v2/email_supplier_verify/?status=0&supplier=W&email_type=0&limit=500"
-UPDATE_EMAIL_STATUS = BASE_URL + "v2/email_supplier_verify/"
+    "v2/email_supplier_verify/?status=0&supplier=W&limit=500"
+UPDATE_EMAIL_STATUS = BASE_URL + "v2/email_supplier/"
 
 WALMART_REG_LINK = 'https://www.walmart.com/account/login'
 WALMART_ACCOUNT_LINK = 'https://www.walmart.com/account/profile'

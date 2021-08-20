@@ -107,7 +107,7 @@ class BotManager:
         self.page.wait_for_timeout(random.randint(1000, 5000))
 
     def insert_value(self, selector, value):
-        self.page.type(selector, value, delay=random.randint(10, 100))
+        self.page.type(selector, value, delay=random.randint(50, 100))
         self.page.wait_for_timeout(random.randint(1000, 5000))
 
     def wait_element_loading(self, selector,
