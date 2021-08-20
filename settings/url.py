@@ -14,7 +14,10 @@ GET_PROXIES_URL = BASE_URL + "v2/ip_supplier/?is_potential_banned=false&is_buypr
 CONFIRMED_BY = 5  # Playwright bot
 GET_EMAIL_SUPPLIER = BASE_URL + \
     "v2/email_supplier_verify/?status=0&supplier=W&limit=500"
+GET_ACCOUNT_SUPPLIER = BASE_URL + \
+    "v2/account_supplier_verify/?status=0&supplier=W&limit=500"
 UPDATE_EMAIL_STATUS = BASE_URL + "v2/email_supplier/"
+UPDATE_ACCOUNT_STATUS = BASE_URL + "v2/account_supplier/"
 
 WALMART_REG_LINK = 'https://www.walmart.com/account/login'
 WALMART_ACCOUNT_LINK = 'https://www.walmart.com/account/profile'

@@ -1,18 +1,19 @@
 import re
 import json
 import random
-from datetime import datetime
+import sys
 
 from walmart.walmart_base import WalmartBase
 from libs.api import STLPRO_API
-from constants import Supplier, EmailStatus, WaitTimeout
-from settings import LOGGER, DATETIME_FORMAT
+from constants import Supplier, EmailStatus, WaitTimeout, VerifierType
+from settings import LOGGER
 
 
 class WmEmailVerifier(WalmartBase):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.email = kwargs.get('email')
+        self.verifier_type = kwargs.get('verifier_type')
 
     @staticmethod
     def get_order_data(page):
@@ -101,20 +102,29 @@ class WmEmailVerifier(WalmartBase):
 
         except Exception:
             LOGGER.info('No Gift cards available.')
-
-        now = datetime.now()
-        initial_account_verifide = now.strftime(DATETIME_FORMAT)
-        STLPRO_API().update_email_status(self.email, EmailStatus.GOOD)
-        print(initial_account_verifide)
+        if self.verifier_type == VerifierType.EMAIL_VERIFIER:
+            STLPRO_API().update_email_status(
+                self.email.get('id'), EmailStatus.BANNED)
+        else:
+            STLPRO_API().update_account_status(
+                self.email.get('id'), EmailStatus.BANNED)
         self.close_browser()
 
     def run(self):
         self.open_sign_up_page()
-        self.signin_walmart(self.email.get('email_value'))
+        if self.verifier_type == VerifierType.EMAIL_VERIFIER:
+            self.signin_walmart(self.email.get('email_value'))
+        elif self.verifier_type == VerifierType.ACCOUNT_VERIFIER:
+            self.signin_walmart(self.email.get('email'))
+
         if self.is_bad_email:
             LOGGER.info('This email is bad.')
-            STLPRO_API().update_email_status(
-                self.email.get('id'), EmailStatus.BANNED)
+            if self.verifier_type == VerifierType.EMAIL_VERIFIER:
+                STLPRO_API().update_email_status(
+                    self.email.get('id'), EmailStatus.BANNED)
+            else:
+                STLPRO_API().update_account_status(
+                    self.email.get('id'), EmailStatus.BANNED)
             self.close_browser()
             return
         self.change_password()
@@ -136,14 +146,22 @@ class WmEmailVerifier(WalmartBase):
 
 
 if __name__ == '__main__':
-    emails = STLPRO_API().get_email_supplier()
+    verifier_type = sys.argv[1]
+    if verifier_type:
+        verifier_type = VerifierType.ACCOUNT_VERIFIER
+        emails = STLPRO_API().get_account_supplier()
+    else:
+        verifier_type = VerifierType.EMAIL_VERIFIER
+        emails = STLPRO_API().get_email_supplier()
+
     proxies = STLPRO_API().get_proxy_ips(Supplier.WALMART_CODE)
     for email in emails:
+        LOGGER.info(email)
         proxy = random.choice(proxies)
         proxy_ip = proxy.get('ip')
         proxy_port = proxy.get('port')
-
         bot = WmEmailVerifier(use_chrome=False, use_proxy=True,
                               proxy_ip=proxy_ip, proxy_port=proxy_port,
-                              email=email)
+                              email=email, verifier_type=verifier_type)
         bot.run()
+        print('')

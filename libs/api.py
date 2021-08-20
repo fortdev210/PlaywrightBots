@@ -146,7 +146,24 @@ class STLPRO_API:
             headers=self._headers,
             data={'status': status}
         )
-        print(response)
+        return response.json()
+
+    def get_account_supplier(self):
+        url = settings.GET_ACCOUNT_SUPPLIER
+        response = requests.get(
+            url,
+            headers=self._headers
+        )
+        res = response.json()
+        return res.get('results')
+
+    def update_account_status(self, id, status, last_used_date):
+        url = settings.UPDATE_ACCOUNT_STATUS + str(id)
+        response = requests.patch(
+            url,
+            headers=self._headers,
+            data={'status': status, 'last_used_at': last_used_date}
+        )
         return response.json()
 
 
