@@ -104,10 +104,10 @@ class WmEmailVerifier(WalmartBase):
             LOGGER.info('No Gift cards available.')
         if self.verifier_type == VerifierType.EMAIL_VERIFIER:
             STLPRO_API().update_email_status(
-                self.email.get('id'), EmailStatus.BANNED)
+                self.email.get('id'), EmailStatus.GOOD)
         else:
             STLPRO_API().update_account_status(
-                self.email.get('id'), EmailStatus.BANNED)
+                self.email.get('id'), EmailStatus.GOOD)
         self.close_browser()
 
     def run(self):
@@ -146,7 +146,7 @@ class WmEmailVerifier(WalmartBase):
 
 
 if __name__ == '__main__':
-    verifier_type = sys.argv[1]
+    verifier_type = int(sys.argv[1])
     if verifier_type:
         verifier_type = VerifierType.ACCOUNT_VERIFIER
         emails = STLPRO_API().get_account_supplier()
