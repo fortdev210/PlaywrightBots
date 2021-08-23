@@ -56,7 +56,9 @@ class WMProductScraper(BaseScraper):
             return
         else:
             LOGGER.info("[Captcha] none {}".format(item['ip']))
-            result = self.parse(rep, proxy_ip=item['ip'], item_id=item['item_id'])
+            result = self.parse(
+                rep, proxy_ip=item['ip'], item_id=item['item_id']
+            )
 
         if result:
             self.results.append(result)
@@ -143,8 +145,10 @@ class WMProductScraper(BaseScraper):
                 savings_amount = list_price - current_price
                 savings_amount = round(savings_amount, 3)
                 savings_percent = None
-                if (current_price is not None) and (savings_amount is not None):
-                    savings_percent = round(float(savings_amount) / list_price, 2)
+                if (current_price is not None) and (savings_amount is not None):  # NOQA
+                    savings_percent = round(
+                        float(savings_amount) / list_price, 2
+                    )
 
             result.update({
                 'proxy': proxy_ip,
