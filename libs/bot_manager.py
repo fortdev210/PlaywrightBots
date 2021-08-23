@@ -1,4 +1,3 @@
-from .utils import get_dsh_extension
 import os
 import random
 import time
@@ -22,6 +21,9 @@ class BotManager:
         self._default_page_width = 1800
         self._default_page_height = 800
         self._port_range = [24000, 24100]
+        self.use_luminati = kwargs.get('use_luminati')
+        self.use_proxy = kwargs.get('use_proxy')
+        self.proxy_data = (kwargs.get('use_luminati'), kwargs.get('use_proxy'))
 
     def start_playwright(self):
         playwright = sync_playwright().start()
@@ -35,8 +37,13 @@ class BotManager:
         return self._proxy_data
 
     @proxy_data.setter
-    def proxy_data(self, use_luminati, use_proxy):
+    def proxy_data(self, value):
         proxy_data = None
+        try:
+            use_luminati, use_proxy = value
+        except ValueError:
+            raise ValueError('Insert two boolean variables.')
+
         if use_luminati is True:
             proxy_data = {
                 "server": LUMINATI_DOMAIN,
@@ -49,6 +56,7 @@ class BotManager:
                 # "username": PROXY_USER,
                 # "password": PROXY_PASS
             }
+
         self._proxy_data = proxy_data
 
     def create_browser(self):
@@ -69,7 +77,6 @@ class BotManager:
         else:
             browser = self.playwright.firefox.launch(
                 headless=False,
-                devtools=True,
                 proxy=self._proxy_data,
                 firefox_user_prefs={
                     'media.peerconnection.enabled': False,
@@ -147,7 +154,7 @@ class BotManager:
 
     def manage_proxy_by_dsh(self, flag, proxy_info=None):
         targets = self.browser.background_pages()
-        dsh_extension = filter(get_dsh_extension, targets)
+        dsh_extension = filter(self.get_dsh_extension, targets)
         ip = ''
         port = ''
         if proxy_info is None:

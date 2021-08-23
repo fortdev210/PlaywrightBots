@@ -2,11 +2,12 @@ import re
 import json
 import random
 import sys
+from datetime import datetime, timedelta
 
 from walmart.walmart_base import WalmartBase
 from libs.api import STLPRO_API
 from constants import Supplier, EmailStatus, WaitTimeout, VerifierType
-from settings import LOGGER
+from settings import LOGGER, DATETIME_FORMAT
 
 
 class WmEmailVerifier(WalmartBase):
@@ -107,7 +108,9 @@ class WmEmailVerifier(WalmartBase):
                 self.email.get('id'), EmailStatus.GOOD)
         else:
             STLPRO_API().update_account_status(
-                self.email.get('id'), EmailStatus.GOOD)
+                self.email.get('id'),
+                EmailStatus.GOOD,
+                self.email.get('last_used_at'))
         self.close_browser()
 
     def run(self):
@@ -143,24 +146,35 @@ class WmEmailVerifier(WalmartBase):
             self.remove_items_in_cart()
             self.delete_address_registry()
             self.remove_gift_cards()
+        LOGGER.info('success.')
 
 
 if __name__ == '__main__':
     verifier_type = int(sys.argv[1])
     if verifier_type:
         verifier_type = VerifierType.ACCOUNT_VERIFIER
-        emails = STLPRO_API().get_account_supplier()
+        last_used_date = (datetime.utcnow() - timedelta(days=90)
+                          ).strftime(DATETIME_FORMAT).replace('T', ' ')
+        emails = STLPRO_API().get_account_supplier(
+            last_used_date=last_used_date)
+
     else:
         verifier_type = VerifierType.EMAIL_VERIFIER
         emails = STLPRO_API().get_email_supplier()
 
     proxies = STLPRO_API().get_proxy_ips(Supplier.WALMART_CODE)
     for email in emails:
+        LOGGER.info('-------------------------------------------')
         LOGGER.info(email)
         proxy = random.choice(proxies)
         proxy_ip = proxy.get('ip')
         proxy_port = proxy.get('port')
-        bot = WmEmailVerifier(use_chrome=False, use_proxy=True,
-                              proxy_ip=proxy_ip, proxy_port=proxy_port,
-                              email=email, verifier_type=verifier_type)
+        LOGGER.info('proxy: {proxy_ip}:{proxy_port}'.format(
+            proxy_ip=proxy_ip, proxy_port=proxy_port))
+        bot = WmEmailVerifier(
+            use_chrome=False, use_luminati=False, use_proxy=True,
+            proxy_ip=proxy_ip, proxy_port=proxy_port,
+            email=email, verifier_type=verifier_type)
+
         bot.run()
+        LOGGER.info('')

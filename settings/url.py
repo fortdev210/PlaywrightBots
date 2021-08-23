@@ -15,7 +15,7 @@ CONFIRMED_BY = 5  # Playwright bot
 GET_EMAIL_SUPPLIER = BASE_URL + \
     "v2/email_supplier_verify/?status=0&supplier=W&limit=500"
 GET_ACCOUNT_SUPPLIER = BASE_URL + \
-    "v2/account_supplier_verify/?status=0&supplier=W&limit=500"
+    "v2/account_supplier_verify/?status=0&supplier=W&last_used_at_from={last_used_at_from}&limit=10000"
 UPDATE_EMAIL_STATUS = BASE_URL + "v2/email_supplier/"
 UPDATE_ACCOUNT_STATUS = BASE_URL + "v2/account_supplier/"
 

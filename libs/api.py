@@ -148,8 +148,10 @@ class STLPRO_API:
         )
         return response.json()
 
-    def get_account_supplier(self):
-        url = settings.GET_ACCOUNT_SUPPLIER
+    def get_account_supplier(self, last_used_date):
+        url = settings.GET_ACCOUNT_SUPPLIER.format(
+            last_used_at_from=last_used_date)
+
         response = requests.get(
             url,
             headers=self._headers

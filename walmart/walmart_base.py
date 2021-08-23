@@ -47,12 +47,12 @@ class WalmartBase(BotManager):
         try:
             self.wait_element_loading(
                 '[data-automation-id="signin-continue-submit-btn"]')
-            LOGGER.info('========== New Signin Page ==========')
+            LOGGER.info('New Signin Page')
             self.press_enter()
             self.insert_value('[id="password"]', WALMART_PASSWORD)
             self.press_enter()
         except Exception:
-            LOGGER.info('========== Old Signin Page ==========')
+            LOGGER.info('Old Signin Page')
             self.insert_value('[id="password"]', WALMART_PASSWORD)
             self.click_element('[data-automation-id="signin-submit-btn"]')
             try:
