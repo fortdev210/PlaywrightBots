@@ -164,4 +164,3 @@ if __name__ == '__main__':
                               proxy_ip=proxy_ip, proxy_port=proxy_port,
                               email=email, verifier_type=verifier_type)
         bot.run()
-        print('')
