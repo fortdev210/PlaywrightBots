@@ -165,7 +165,3 @@ class STLPRO_API:
             data={'status': status, 'last_used_at': last_used_date}
         )
         return response.json()
-
-
-if __name__ == '__main__':
-    STLPRO_API().update_email_status(120771, 2)

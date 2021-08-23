@@ -87,7 +87,8 @@ class BotManager:
             self.browser = browser
 
     def close_browser(self):
-        self.browser.close()
+        if self.browser:
+            self.browser.close()
         self.browser = None
         self.stop_playwright()
 
@@ -110,8 +111,10 @@ class BotManager:
         self.page.type(selector, value, delay=random.randint(50, 100))
         self.page.wait_for_timeout(random.randint(1000, 5000))
 
-    def wait_element_loading(self, selector,
-                             time=constants.WaitTimeout.DEFAULT_WAIT_TIME):
+    def wait_element_loading(
+        self, selector,
+        time=constants.WaitTimeout.DEFAULT_WAIT_TIME
+    ):
         self.page.wait_for_selector(selector, timeout=time)
 
     def reinsert_value(self, selector, value):
@@ -164,3 +167,10 @@ class BotManager:
 
     def sleep(self, seconds):
         time.sleep(seconds)
+
+    @staticmethod
+    def get_dsh_extension(target):
+        if target.get('title') == 'STL Pro Dropship Helper' \
+                and target.get('type') == 'background_page':
+            return True
+        return False

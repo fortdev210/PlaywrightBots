@@ -20,13 +20,6 @@ def get_traceback_lines(ex, ex_traceback=None):
     return tb_lines
 
 
-def get_dsh_extension(target):
-    if target.get('title') == 'STL Pro Dropship Helper' \
-            and target.get('type') == 'background_page':
-        return True
-    return False
-
-
 def get_hostname():
     hostname = os.uname()[1].lower()
     return hostname
