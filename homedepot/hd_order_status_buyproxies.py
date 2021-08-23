@@ -44,16 +44,18 @@ def run(playwright, order):
         url = random.choice(urls)
         page.goto(url)
         page.wait_for_timeout(5000)
-        page.fill("input[id=order]", order['supplier_order_numbers_str'])
-        page.wait_for_timeout(1000)
-        page.fill("input[id=email]", order['user_email'])
-        page.wait_for_timeout(1000)
-        page.click("button[type=submit]")
-        page.wait_for_timeout(5000)
-
-        content = '''([x]) => {return fetch('/customer/order/v1/guest/orderdetailsgroup', {method: 'POST', body: '{"orderDetailsRequest": {"orderId": "%s", "emailId": "%s"}}', headers: {'Accept': 'application/json','Content-Type': 'application/json'}}).then(res => res.json());}'''  # NOQA
+        content = '''([x]) => {return fetch('/customer/order/v1/guest/orderdetailsgroup', {method: 'POST', body: '{"orderDetailsRequest": {"orderId": "%s", "emailId": "%s"}}', headers: {'Version': 'HTTP/1.0', 'Accept': 'application/json','Content-Type': 'application/json'}}).then(res => res.json());}'''  # NOQA
         content = content % (order['supplier_order_numbers_str'], order['user_email'])  # NOQA
-        data = page.evaluate(content, [None])
+        counter = 0
+        data = ""
+        while counter < 3:
+            try:
+                data = page.evaluate(content, [None])
+            except Exception:
+                time.sleep(5)
+                counter += 1
+            else:
+                break
         result = update_ds_order(order['id'], json.dumps(data))
         LOGGER.info(result)
         if result['status'] == 'success':
@@ -77,7 +79,9 @@ if __name__ == "__main__":
         orders = orders[start:end]
         random.shuffle(orders)
         for order in orders:
-            LOGGER.info('================== Start ==================')
+            LOGGER.info('============== Start {} =============='.format(
+                order['supplier_order_numbers_str']
+            ))
             random.shuffle(ips)
             random_ips = ips[:2]
             for ip in random_ips:
