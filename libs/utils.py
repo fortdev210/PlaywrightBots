@@ -22,18 +22,28 @@ def get_ds_orders(supplier_id):
     response = requests.get(
         url,
         headers={
-            "Authorization": "Basic " + base64.b64encode(bytes('{}:{}'.format(settings.BUYBOT_USERNAME, settings.BUYBOT_PASSWORD), encoding="raw_unicode_escape")).decode()  # NOQA
+            "Authorization": "Basic " + base64.b64encode(
+                bytes('{}:{}'.format(
+                    settings.BUYBOT_USERNAME, settings.BUYBOT_PASSWORD),
+                    encoding="raw_unicode_escape")
+            ).decode()
         }
     )
     return response.json()
 
 
 def get_category_suppliers(supplier_id, limit, offset):
-    url = settings.GET_CATEGORY_SUPPLIER_URL.format(supplier_id=supplier_id, limit=limit, offset=offset)
+    url = settings.GET_CATEGORY_SUPPLIER_URL.format(
+        supplier_id=supplier_id, limit=limit, offset=offset
+    )
     response = requests.get(
         url,
         headers={
-            "Authorization": "Basic " + base64.b64encode(bytes('{}:{}'.format(settings.BUYBOT_USERNAME, settings.BUYBOT_PASSWORD), encoding="raw_unicode_escape")).decode()  # NOQA
+            "Authorization": "Basic " + base64.b64encode(
+                bytes('{}:{}'.format(
+                    settings.BUYBOT_USERNAME, settings.BUYBOT_PASSWORD),
+                    encoding="raw_unicode_escape")
+            ).decode()
         }
     )
     return response.json()['results']
@@ -46,7 +56,11 @@ def update_product_count(category_supplier_id, product_count):
     response = requests.patch(
         url,
         headers={
-            "Authorization": "Basic " + base64.b64encode(bytes('{}:{}'.format(settings.BUYBOT_USERNAME, settings.BUYBOT_PASSWORD), encoding="raw_unicode_escape")).decode()  # NOQA
+            "Authorization": "Basic " + base64.b64encode(
+                bytes('{}:{}'.format(
+                    settings.BUYBOT_USERNAME, settings.BUYBOT_PASSWORD),
+                    encoding="raw_unicode_escape")
+            ).decode()
         },
         json={'product_count': product_count}
     )
@@ -59,7 +73,11 @@ def update_ds_order(ds_order_id, data):
     response = requests.post(
         url,
         headers={
-            "Authorization": "Basic " + base64.b64encode(bytes('{}:{}'.format(settings.BUYBOT_USERNAME, settings.BUYBOT_PASSWORD), encoding="raw_unicode_escape")).decode()  # NOQA
+            "Authorization": "Basic " + base64.b64encode(
+                bytes('{}:{}'.format(
+                    settings.BUYBOT_USERNAME, settings.BUYBOT_PASSWORD),
+                    encoding="raw_unicode_escape")
+            ).decode()
         },
         json={'data': data, 'confirmed_by': settings.CONFIRMED_BY}
     )
@@ -80,7 +98,7 @@ def update_scraped_results(page, supplier, results, start_time, total_item):
     end_time_str = end_time.strftime(settings.DATETIME_FORMAT)
     file_name = f'{start_time_str}_{end_time_str}_{total_item}.txt'
     # fill form
-    page.select_option("select[id=id_last_scraped_by]", str(settings.PLAYWRIGHT))
+    page.select_option("select[id=id_last_scraped_by]", str(settings.PLAYWRIGHT))  # NOQA
     page.select_option("select[id=id_supplier]", supplier)
     buffer = '\n'.join([json.dumps(row) for row in results])
     # Upload buffer from memory

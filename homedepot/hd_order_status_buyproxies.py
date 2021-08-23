@@ -50,8 +50,7 @@ def run(playwright, order):
         page.wait_for_timeout(1000)
         page.click("button[type=submit]")
         page.wait_for_timeout(5000)
-
-        content = '''([x]) => {return fetch('/customer/order/v1/guest/orderdetailsgroup', {method: 'POST', body: '{"orderDetailsRequest": {"orderId": "%s", "emailId": "%s"}}', headers: {'Accept': 'application/json','Content-Type': 'application/json'}}).then(res => res.json());}'''  # NOQA
+        content = '''([x]) => {return fetch('/customer/order/v1/guest/orderdetailsgroup', {method: 'POST', body: '{"orderDetailsRequest": {"orderId": "%s", "emailId": "%s"}}', headers: {'Version': 'HTTP/1.0', 'Accept': 'application/json','Content-Type': 'application/json'}}).then(res => res.json());}'''  # NOQA
         content = content % (order['supplier_order_numbers_str'], order['user_email'])  # NOQA
         data = page.evaluate(content, [None])
         result = update_ds_order(order['id'], json.dumps(data))

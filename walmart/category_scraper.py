@@ -51,7 +51,7 @@ class WMCategoryScraper(BaseScraper):
                 )
             return self.base_grocery_api + extended_uri
         elif '_be_shelf_id' in url:
-            return self.base_search_shelf_id_api.format(_be_shelf_id=parsed.args['_be_shelf_id'])
+            return self.base_search_shelf_id_api.format(_be_shelf_id=parsed.args['_be_shelf_id'])  # NOQA
         elif 'cat_id=' in url:
             return self.base_search_api.format(cat_id=parsed.args['cat_id'])
         return url
@@ -85,7 +85,7 @@ class WMCategoryScraper(BaseScraper):
 
     def process_item(self, item):
         LOGGER.info(
-            "=============== Start scrape category: {name} ===========\n {url}".format(
+            "=============== Start scrape category: {name} ===========\n {url}".format(  # NOQA
                 name=item['name'], url=item['url']
             ))
         item['ip'] = self.current_proxy['ip']
@@ -160,21 +160,17 @@ class WMCategoryScraper(BaseScraper):
                 # if variants:
                 #     variant = variants[0]
                 available_online = row.get('inventory', {}).get('availableOnline', False)  # NOQA
-                if not row.get('primaryOffer') or not available_online:
-                    current_price = None
-                    savings_amount = None
-                    savings_percent = None
-                else:
+                current_price = None
+                savings_amount = None
+                savings_percent = None
+                if row.get('primaryOffer') and available_online:
                     current_price = self.get_price(row['primaryOffer'])
                     list_price = self.get_list_price(row['primaryOffer'])
                     if list_price is None:
                         list_price = current_price
-                    if current_price is None:
-                        import pdb; pdb.set_trace()
-                    savings_amount = list_price - current_price
-                    savings_amount = round(savings_amount, 3)
-                    savings_percent = None
-                    if (current_price is not None) and (savings_amount is not None):
+                    if current_price is not None:
+                        savings_amount = list_price - current_price
+                        savings_amount = round(savings_amount, 3)
                         savings_percent = round(float(savings_amount) / list_price, 2)  # NOQA
                 in_stock_for_shipping = available_online
                 is_limited_qty = row['is_limited_qty']
@@ -232,7 +228,7 @@ class WMCategoryScraper(BaseScraper):
                 savings_amount = list_price - current_price
                 savings_amount = round(savings_amount, 3)
                 savings_percent = None
-                if (current_price is not None) and (savings_amount is not None):
+                if (current_price is not None) and (savings_amount is not None):  # NOQA
                     savings_percent = round(float(savings_amount) / list_price, 2)  # NOQA
                 in_stock_for_shipping = not row['store']['isOutOfStock']
                 quantity_limit = row['basic']['maxAllowed']
@@ -260,7 +256,7 @@ class WMCategoryScraper(BaseScraper):
                     'categories': None,
                     'specials': None,
                     'seller_name': None,
-                    'url': 'https://www.walmart.com' + row['basic']['productUrl']
+                    'url': 'https://www.walmart.com' + row['basic']['productUrl']  # NOQA
                 })
                 LOGGER.info(result)
                 self.results.append(result)
@@ -282,7 +278,7 @@ class WMCategoryScraper(BaseScraper):
     def get_price(self, price_map):
         current_price = price_map.get('offerPrice')
         if not current_price:
-            current_price = price_map.get('minPrice')  # "productType": "VARIANT"
+            current_price = price_map.get('minPrice')  # "productType": "VARIANT"  # NOQA
         return current_price
 
 
