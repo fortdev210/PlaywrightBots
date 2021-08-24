@@ -81,7 +81,7 @@ if __name__ == "__main__":
     end = int(sys.argv[2])
     ips = StlproAPI().get_proxy_ips(
         supplier_id=constants.Supplier.HOMEDEPOT_CODE
-    )['results']
+    )
     while True:
         orders = StlproAPI().get_ds_orders(constants.Supplier.HOMEDEPOT_CODE)
         orders = orders[start:end]
