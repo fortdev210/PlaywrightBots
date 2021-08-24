@@ -2,7 +2,7 @@ import re
 
 from .walmart_base import WalmartBase
 from settings import LOGGER, check_within_day_order
-from libs.api import STLPRO_API
+from libs.api import StlproAPI
 from constants import MAX_WAIT_TIME
 
 
@@ -194,7 +194,7 @@ class WalmartBuy(WalmartBase):
             total_price = self.page.inner_text(
                 '[data-automation-id="pos-grand-total-amount"]')
             total_price = total_price.replace('$', '')
-            STLPRO_API().gift_card_send_total_price(
+            StlproAPI().gift_card_send_total_price(
                 self.order_info['id'], total_price)
         except TimeoutError:
             LOGGER.error('Error sending total price of order to db.')
@@ -208,7 +208,7 @@ class WalmartBuy(WalmartBase):
             self.sleep(2)
             self.click_element(
                 '[data-automation-id="payment-add-new-gift-card"]')
-        new_gift_card = STLPRO_API().gift_card_get_next_card(
+        new_gift_card = StlproAPI().gift_card_get_next_card(
             self.order_info['id'])
         self.wait_element_loading(
             '[data-automation-id="enter-gift-card-number"]')
@@ -233,7 +233,7 @@ class WalmartBuy(WalmartBase):
              and amount is {used_gift_card_amount}")
 
         try:
-            STLPRO_API().gift_card_send_current_card_info(
+            StlproAPI().gift_card_send_current_card_info(
                 self.order_info['id'],
                 new_gift_card.get('cardNumber'),
                 used_gift_card_amount

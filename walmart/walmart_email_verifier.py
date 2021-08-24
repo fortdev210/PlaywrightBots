@@ -5,7 +5,7 @@ import sys
 from datetime import datetime, timedelta
 
 from walmart.walmart_base import WalmartBase
-from libs.api import STLPRO_API
+from libs.api import StlproAPI
 from constants import Supplier, EmailStatus, WaitTimeout, VerifierType
 from settings import LOGGER, DATETIME_FORMAT
 
@@ -107,10 +107,10 @@ class WmEmailVerifier(WalmartBase):
         except Exception:
             LOGGER.info('No Gift cards available.')
         if self.verifier_type == VerifierType.EMAIL_VERIFIER:
-            STLPRO_API().update_email_status(
+            StlproAPI().update_email_status(
                 self.email.get('id'), EmailStatus.GOOD)
         else:
-            STLPRO_API().update_account_status(
+            StlproAPI().update_account_status(
                 self.email.get('id'),
                 EmailStatus.GOOD,
                 self.email.get('last_used_at'))
@@ -126,10 +126,10 @@ class WmEmailVerifier(WalmartBase):
         if self.is_bad_email:
             LOGGER.info('This email is bad.')
             if self.verifier_type == VerifierType.EMAIL_VERIFIER:
-                STLPRO_API().update_email_status(
+                StlproAPI().update_email_status(
                     self.email.get('id'), EmailStatus.BANNED)
             else:
-                STLPRO_API().update_account_status(
+                StlproAPI().update_account_status(
                     self.email.get('id'), EmailStatus.BANNED)
             self.close_browser()
             return
@@ -139,7 +139,7 @@ class WmEmailVerifier(WalmartBase):
         is_canceled = self.check_order_canceled(order_data)
         if is_canceled:
             LOGGER.info('Order is canceled. Marking as banned.')
-            STLPRO_API().update_email_status(
+            StlproAPI().update_email_status(
                 self.email.get('id'), EmailStatus.BANNED)
             self.close_browser()
             return
@@ -158,14 +158,14 @@ if __name__ == '__main__':
         verifier_type = VerifierType.ACCOUNT_VERIFIER
         last_used_date = (datetime.utcnow() - timedelta(days=90)
                           ).strftime(DATETIME_FORMAT).replace('T', ' ')
-        emails = STLPRO_API().get_account_supplier(
+        emails = StlproAPI().get_account_supplier(
             last_used_date=last_used_date)
 
     else:
         verifier_type = VerifierType.EMAIL_VERIFIER
-        emails = STLPRO_API().get_email_supplier()
+        emails = StlproAPI().get_email_supplier()
 
-    proxies = STLPRO_API().get_proxy_ips(Supplier.WALMART_CODE)
+    proxies = StlproAPI().get_proxy_ips(Supplier.WALMART_CODE)
     for email in emails:
         LOGGER.info('-------------------------------------------')
         LOGGER.info(email)

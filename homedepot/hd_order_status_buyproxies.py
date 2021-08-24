@@ -4,7 +4,7 @@ import time
 import sys
 
 from playwright.sync_api import sync_playwright
-from libs.utils import get_ds_orders, update_ds_order, get_proxy_ips
+from libs.api import StlproAPI
 
 from settings import (
     LOGGER, BUY_PROXIES_PASSWORD, BUY_PROXIES_USERNAME
@@ -44,19 +44,27 @@ def run(playwright, order):
         url = random.choice(urls)
         page.goto(url)
         page.wait_for_timeout(5000)
+        page.fill("input[id=order]", order['supplier_order_numbers_str'])
+        page.wait_for_timeout(1000)
+        page.fill("input[id=email]", order['user_email'])
+        page.wait_for_timeout(1000)
         content = '''([x]) => {return fetch('/customer/order/v1/guest/orderdetailsgroup', {method: 'POST', body: '{"orderDetailsRequest": {"orderId": "%s", "emailId": "%s"}}', headers: {'Version': 'HTTP/1.0', 'Accept': 'application/json','Content-Type': 'application/json'}}).then(res => res.json());}'''  # NOQA
         content = content % (order['supplier_order_numbers_str'], order['user_email'])  # NOQA
         counter = 0
         data = ""
         while counter < 3:
             try:
+                page.click("button[type=submit]")
+                page.wait_for_timeout(5000)
                 data = page.evaluate(content, [None])
             except Exception:
                 time.sleep(5)
                 counter += 1
             else:
                 break
-        result = update_ds_order(order['id'], json.dumps(data))
+        if not data:
+            raise Exception("Max retry times exceed!")
+        result = StlproAPI().update_ds_order(order['id'], json.dumps(data))
         LOGGER.info(result)
         if result['status'] == 'success':
             return True
@@ -71,11 +79,11 @@ def run(playwright, order):
 if __name__ == "__main__":
     start = int(sys.argv[1])
     end = int(sys.argv[2])
-    ips = get_proxy_ips(
+    ips = StlproAPI().get_proxy_ips(
         supplier_id=constants.Supplier.HOMEDEPOT_CODE
-    )['results']
+    )
     while True:
-        orders = get_ds_orders(constants.Supplier.HOMEDEPOT_CODE)
+        orders = StlproAPI().get_ds_orders(constants.Supplier.HOMEDEPOT_CODE)
         orders = orders[start:end]
         random.shuffle(orders)
         for order in orders:
