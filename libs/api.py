@@ -25,9 +25,15 @@ class StlproAPI:
 
     def update_ds_order(self, ds_order_id, data):
         url = settings.UPDATE_DS_ORDER_INFO_URL.format(ds_order_id=ds_order_id)
-        response = requests.get(
+        response = requests.post(
             url,
-            headers=self._headers,
+            headers={
+                "Authorization": "Basic " + base64.b64encode(
+                    bytes('{}:{}'.format(
+                        settings.BUYBOT_USERNAME, settings.BUYBOT_PASSWORD),
+                        encoding="raw_unicode_escape")
+                ).decode()
+            },
             json={'data': data, 'confirmed_by': settings.CONFIRMED_BY}
         )
         return response.json()
