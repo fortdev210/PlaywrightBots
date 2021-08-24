@@ -40,6 +40,7 @@ class BaseScraper(object):
         self.current_proxy = ip
         firefox = playwright.firefox
         browser = firefox.launch(
+            timeout=60000,
             headless=False,
             proxy={
                 "server": '{}:{}'.format(ip['ip'], ip['port']),
@@ -102,12 +103,14 @@ class BaseScraper(object):
                 except CaptchaResolveException:
                     traceback.print_exc()
                     self.retry += 1
-                    self.browser.close()
+                    if self.browser:
+                        self.browser.close()
                     continue
                 except Exception as ex:
                     # sentry_sdk.capture_exception()
                     traceback.print_exc()
-                    self.browser.close()
+                    if self.browser:
+                        self.browser.close()
                     LOGGER.exception(msg=str(ex), exc_info=True)
                     raise ex
             LOGGER.exception('Max retry exceed!')

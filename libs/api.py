@@ -4,7 +4,7 @@ import base64
 import settings
 
 
-class STLPRO_API:
+class StlproAPI:
     def __init__(self):
         self._headers = {
             "Authorization": "Basic " + base64.b64encode(

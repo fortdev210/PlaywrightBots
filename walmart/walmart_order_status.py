@@ -6,7 +6,7 @@ from .walmart_base import WalmartBase
 from settings import (
     LOGGER, WALMART_SELF_RESOLVE_CAPTCHA
 )
-from libs.api import STLPRO_API
+from libs.api import StlproAPI
 
 
 class WalmartOrderStatus(WalmartBase):
@@ -49,10 +49,10 @@ class WalmartOrderStatus(WalmartBase):
         return data
 
     def scrape_orders_state(self):
-        orders = STLPRO_API().get_ds_orders(
+        orders = StlproAPI().get_ds_orders(
             supplier_id=constants.Supplier.WALMART_CODE)
 
-        ips = STLPRO_API().get_proxy_ips(
+        ips = StlproAPI().get_proxy_ips(
             supplier_id=constants.Supplier.WALMART_CODE)['results']
         orders = orders[self.start:self.end]
         random.shuffle(orders)
@@ -65,7 +65,7 @@ class WalmartOrderStatus(WalmartBase):
                 try:
                     self.create_browser()
                     data = self.try_to_scrape_walmart_order(order)
-                    result = STLPRO_API().update_ds_order(order['id'], data)
+                    result = StlproAPI().update_ds_order(order['id'], data)
                     LOGGER.info(result)
                 except Exception as e:
                     LOGGER.exception(e, exc_info=True)
