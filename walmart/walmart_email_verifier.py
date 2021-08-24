@@ -91,14 +91,13 @@ class WmEmailVerifier(WalmartBase):
             LOGGER.info('Gift card listed. Removing...')
             remove_btns = self.page.query_selector_all(
                 '[data-automation-id*="delete-gift-card-"]')
-            for i in len(remove_btns):
-                btn = remove_btns[i]
+            for btn in remove_btns:
                 btn.click()
                 try:
                     self.wait_element_loading(
-                        f'[data-tl-id="confirm-delete{i}"]',
+                        '[data-tl-id*="confirm-delete"]',
                         WaitTimeout.MIN_WAIT_TIME)
-                    self.click(f'[data-tl-id="confirm-delete{i}"]')
+                    self.click('[data-tl-id*="confirm-delete"]')
                 except Exception:
                     pass
                 self.sleep(2)
