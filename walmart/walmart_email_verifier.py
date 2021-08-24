@@ -22,13 +22,16 @@ class WmEmailVerifier(WalmartBase):
             "window.__WML_REDUX_INITIAL_STATE__ = (.*?);<\/script>",  # NOQA
             page.content()
         )
-        if pattern:
-            data = pattern[1].replace(
-                'window.__WML_REDUX_INITIAL_STATE__ = ', ''
-            ).replace(';</script>', '')
-            orders_json = json.loads(data)
-            orders = orders_json['recentOrders']['orders']
-            return orders
+        try:
+            if pattern:
+                data = pattern[1].replace(
+                    'window.__WML_REDUX_INITIAL_STATE__ = ', ''
+                ).replace(';</script>', '')
+                orders_json = json.loads(data)
+                orders = orders_json['recentOrders']['orders']
+                return orders
+        except Exception:
+            LOGGER.error('Error while getting order info.')
         return None
 
     @staticmethod
