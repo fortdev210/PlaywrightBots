@@ -97,7 +97,7 @@ class WmEmailVerifier(WalmartBase):
                     self.wait_element_loading(
                         '[data-tl-id*="confirm-delete"]',
                         WaitTimeout.MIN_WAIT_TIME)
-                    self.click('[data-tl-id*="confirm-delete"]')
+                    self.click_element('[data-tl-id*="confirm-delete"]')
                 except Exception:
                     pass
                 self.sleep(2)
