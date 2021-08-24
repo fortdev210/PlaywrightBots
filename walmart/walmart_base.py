@@ -82,6 +82,7 @@ class WalmartBase(BotManager):
         self.click_element('[data-automation-id="signup-submit-btn"]')
 
     def captcha_detected(self):
+        self.sleep(3)
         if self.page.is_visible('div[class="captcha re-captcha"]'):
             return True
         return False

@@ -122,7 +122,7 @@ class WmEmailVerifier(WalmartBase):
             self.signin_walmart(self.email.get('email_value'))
         elif self.verifier_type == VerifierType.ACCOUNT_VERIFIER:
             self.signin_walmart(self.email.get('email'))
-
+        self.resolve_captcha(self.proxy_ip)
         if self.is_bad_email:
             LOGGER.info('This email is bad.')
             if self.verifier_type == VerifierType.EMAIL_VERIFIER:

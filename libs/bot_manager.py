@@ -111,7 +111,11 @@ class BotManager:
         self.page = page
 
     def go_to_link(self, link):
-        self.page.goto(link)
+        try:
+            self.page.goto(link)
+        except Exception:
+            self.page.reload()
+            self.page.goto(link)
         self.page.wait_for_timeout(random.randint(1000, 5000))
 
     def insert_value(self, selector, value):
