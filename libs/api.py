@@ -27,13 +27,7 @@ class StlproAPI:
         url = settings.UPDATE_DS_ORDER_INFO_URL.format(ds_order_id=ds_order_id)
         response = requests.post(
             url,
-            headers={
-                "Authorization": "Basic " + base64.b64encode(
-                    bytes('{}:{}'.format(
-                        settings.BUYBOT_USERNAME, settings.BUYBOT_PASSWORD),
-                        encoding="raw_unicode_escape")
-                ).decode()
-            },
+            headers=self._headers,
             json={'data': data, 'confirmed_by': settings.CONFIRMED_BY}
         )
         return response.json()
@@ -173,3 +167,35 @@ class StlproAPI:
             data={'status': status, 'last_used_at': last_used_date}
         )
         return response.json()
+
+    def get_category_suppliers(self, supplier_id, limit, offset):
+        url = settings.GET_CATEGORY_SUPPLIER_URL.format(
+            supplier_id=supplier_id, limit=limit, offset=offset
+        )
+        response = requests.get(
+            url,
+            headers=self._headers
+        )
+        return response.json()['results']
+
+    def update_product_count(self, category_supplier_id, product_count):
+        url = settings.UPDATE_CATEGORY_SUPPLIER_URL.format(
+            category_supplier_id=category_supplier_id
+        )
+        response = requests.patch(
+            url,
+            headers=self._headers,
+            json={'product_count': product_count}
+        )
+        settings.LOGGER.info(response.json())
+        return response.json()
+
+    def get_current_products(self, supplier_id, active, offset=0, limit=100):
+        url = settings.GET_CURRENT_PRODUCT_URL.format(
+            supplier_id=supplier_id, active=active, limit=limit, offset=offset
+        )
+        response = requests.get(
+            url,
+            headers=self._headers
+        )
+        return response.json()['results']

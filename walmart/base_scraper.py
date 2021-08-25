@@ -10,8 +10,7 @@ from settings import (
     LOGGER,
     BUY_PROXIES_PASSWORD, BUY_PROXIES_USERNAME
 )
-
-from libs.utils import get_proxy_ips
+from libs.api import StlproAPI
 
 
 class BaseScraper(object):
@@ -31,7 +30,9 @@ class BaseScraper(object):
         self.current_proxy = None
 
     def get_proxy(self):
-        self.proxies = get_proxy_ips(supplier_id=self.supplier_id)['results']
+        self.proxies = StlproAPI().get_proxy_ips(
+            supplier_id=self.supplier_id
+        )['results']
         if not self.proxies:
             raise
 

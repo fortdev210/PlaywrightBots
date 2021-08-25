@@ -9,10 +9,11 @@ import settings
 from libs.walmart.base import resolve_captcha
 
 from libs.utils import (
-    get_current_products, update_scraped_results,
+    update_scraped_results,
     find_value_by_markers, get_json_value_by_key_safely
 )
 from settings import LOGGER
+from libs.api import StlproAPI
 from walmart.base_scraper import BaseScraper
 
 
@@ -22,7 +23,7 @@ class WMProductScraper(BaseScraper):
         self.start_key = ['item']
 
     def fetch_items(self):
-        self.items = get_current_products(
+        self.items = StlproAPI().get_current_products(
             self.supplier_id, self.active, self.offset, self.limit
         )
         self.total_item = len(self.items)
