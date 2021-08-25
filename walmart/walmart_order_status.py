@@ -6,13 +6,10 @@ from constants import Supplier
 from walmart.walmart_base import WalmartBase
 from settings import LOGGER
 from libs.api import StlproAPI
-from libs.exception import BotDetectionException
+from libs.exception import CaptchaResolveException
 
 
 class WmOrderStatus(WalmartBase):
-    WALMART_PURCHASE_HISTORY_LINK = \
-        "https://www.walmart.com/account/wmpurchasehistory"
-
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.order = kwargs.get('order')
@@ -30,16 +27,16 @@ class WmOrderStatus(WalmartBase):
 
     def try_to_scrape_walmart_order(self):
         self.open_sign_up_page()
-        self.signin_walmart(self.order.get('username'))
+        self.signin_walmart(self.order.get('username')
+                            or self.order.get('email'))
         # resolve captcha
         captcha_detected = self.resolve_captcha(self.proxy_ip)
         if captcha_detected:
-            raise BotDetectionException()
+            raise CaptchaResolveException()
 
         self.open_order_history()
         self.sleep(random.randint(5, 10))
         data = self.get_order_data(self.page)
-        print("data success")
         return data
 
     def run(self):
@@ -47,13 +44,13 @@ class WmOrderStatus(WalmartBase):
             data = self.try_to_scrape_walmart_order()
             result = self.api.update_ds_order(self.order['id'], data)
             LOGGER.info(result)
-        except BotDetectionException:
+        except CaptchaResolveException:
             LOGGER.error('Unable to solve captcha. Try with another proxy.')
         except Exception as e:
             LOGGER.exception(e, exc_info=True)
             LOGGER.error("Failed: " + self.order['supplier_order_numbers_str'])
-            self.close_browser()
-            self.sleep(5)
+        self.close_browser()
+        self.sleep(5)
 
 
 if __name__ == '__main__':
@@ -78,3 +75,4 @@ if __name__ == '__main__':
             proxy_ip=proxy_ip, proxy_port=proxy_port, order=order
         )
         bot.run()
+        LOGGER.info('')
