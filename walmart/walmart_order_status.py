@@ -1,22 +1,21 @@
 import random
 import re
+import sys
 
-import constants
-from .walmart_base import WalmartBase
-from settings import (
-    LOGGER, WALMART_SELF_RESOLVE_CAPTCHA
-)
+from constants import Supplier
+from walmart.walmart_base import WalmartBase
+from settings import LOGGER
 from libs.api import StlproAPI
+from libs.exception import BotDetectionException
 
 
-class WalmartOrderStatus(WalmartBase):
+class WmOrderStatus(WalmartBase):
     WALMART_PURCHASE_HISTORY_LINK = \
         "https://www.walmart.com/account/wmpurchasehistory"
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.start = kwargs.get('start')
-        self.end = kwargs.get('end')
+        self.order = kwargs.get('order')
 
     @staticmethod
     def get_order_data(page):
@@ -29,47 +28,53 @@ class WalmartOrderStatus(WalmartBase):
         ).replace(';</script>', '')
         return data
 
-    def try_to_scrape_walmart_order(self, order):
-        self.order_info = order
-        url = self.get_random_url()
-        self.open_new_page()
-        self.go_to_link(url)
-        self.sleep(3)
-        self.signin_walmart()
-        if self.captcha_detected():
-            LOGGER.error("[Captcha] get {}".format(self.order['ip']['ip']))
-            if WALMART_SELF_RESOLVE_CAPTCHA:
-                self.resolve_captcha(order['ip']['ip'])
-        else:
-            LOGGER.info("[Captcha] none {}".format(order['ip']['ip']))
+    def try_to_scrape_walmart_order(self):
+        self.open_sign_up_page()
+        self.signin_walmart(self.order.get('username'))
+        # resolve captcha
+        captcha_detected = self.resolve_captcha(self.proxy_ip)
+        if captcha_detected:
+            raise BotDetectionException()
 
-        self.go_to_link(self.WALMART_PURCHASE_HISTORY_LINK)
+        self.open_order_history()
         self.sleep(random.randint(5, 10))
         data = self.get_order_data(self.page)
+        print("data success")
         return data
 
-    def scrape_orders_state(self):
-        orders = StlproAPI().get_ds_orders(
-            supplier_id=constants.Supplier.WALMART_CODE)
+    def run(self):
+        try:
+            data = self.try_to_scrape_walmart_order()
+            result = self.api.update_ds_order(self.order['id'], data)
+            LOGGER.info(result)
+        except BotDetectionException:
+            LOGGER.error('Unable to solve captcha. Try with another proxy.')
+        except Exception as e:
+            LOGGER.exception(e, exc_info=True)
+            LOGGER.error("Failed: " + self.order['supplier_order_numbers_str'])
+            self.close_browser()
+            self.sleep(5)
 
-        ips = StlproAPI().get_proxy_ips(
-            supplier_id=constants.Supplier.WALMART_CODE)['results']
-        orders = orders[self.start:self.end]
-        random.shuffle(orders)
-        for order in orders:
-            LOGGER.info('================== Start ==================')
-            random.shuffle(ips)
-            random_ips = ips[:2]
-            for ip in random_ips:
-                order['ip'] = ip
-                try:
-                    self.create_browser()
-                    data = self.try_to_scrape_walmart_order(order)
-                    result = StlproAPI().update_ds_order(order['id'], data)
-                    LOGGER.info(result)
-                except Exception as e:
-                    LOGGER.exception(e, exc_info=True)
-                    LOGGER.error(
-                        "Failed: " + order['supplier_order_numbers_str'])
-                self.close_browser()
-                self.sleep(5)
+
+if __name__ == '__main__':
+    start = int(sys.argv[1])
+    end = int(sys.argv[2])
+    orders = StlproAPI().get_ds_orders(supplier_id=Supplier.WALMART_CODE)
+    LOGGER.info(f"Get {len(orders)} orders")
+    proxies = StlproAPI().get_proxy_ips(Supplier.WALMART_CODE)
+    orders = orders[start:end]
+    random.shuffle(orders)
+
+    for order in orders:
+        LOGGER.info('-------------------------------------------')
+        LOGGER.info(order)
+        proxy = random.choice(proxies)
+        proxy_ip = proxy.get('ip')
+        proxy_port = proxy.get('port')
+        LOGGER.info('proxy: {proxy_ip}:{proxy_port}'.format(
+            proxy_ip=proxy_ip, proxy_port=proxy_port))
+        bot = WmOrderStatus(
+            use_chrome=False, use_luminati=False, use_proxy=True,
+            proxy_ip=proxy_ip, proxy_port=proxy_port, order=order
+        )
+        bot.run()
