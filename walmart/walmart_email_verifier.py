@@ -106,10 +106,10 @@ class WmEmailVerifier(WalmartBase):
         except Exception:
             LOGGER.info('No Gift cards available.')
         if self.verifier_type == VerifierType.EMAIL_VERIFIER:
-            StlproAPI().update_email_status(
+            self.api.update_email_status(
                 self.email.get('id'), EmailStatus.GOOD)
         else:
-            StlproAPI().update_account_status(
+            self.api.update_account_status(
                 self.email.get('id'),
                 EmailStatus.GOOD,
                 self.email.get('last_used_at'))
@@ -125,10 +125,10 @@ class WmEmailVerifier(WalmartBase):
         if self.is_bad_email:
             LOGGER.info('This email is bad.')
             if self.verifier_type == VerifierType.EMAIL_VERIFIER:
-                StlproAPI().update_email_status(
+                self.api.update_email_status(
                     self.email.get('id'), EmailStatus.BANNED)
             else:
-                StlproAPI().update_account_status(
+                self.api.update_account_status(
                     self.email.get('id'), EmailStatus.BANNED)
             self.close_browser()
             return
@@ -138,7 +138,7 @@ class WmEmailVerifier(WalmartBase):
         is_canceled = self.check_order_canceled(order_data)
         if is_canceled:
             LOGGER.info('Order is canceled. Marking as banned.')
-            StlproAPI().update_email_status(
+            self.api.update_email_status(
                 self.email.get('id'), EmailStatus.BANNED)
             self.close_browser()
             return
