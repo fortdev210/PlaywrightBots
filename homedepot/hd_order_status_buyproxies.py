@@ -5,6 +5,7 @@ import sys
 
 from playwright.sync_api import sync_playwright
 from libs.api import StlproAPI
+from libs.exception import BotDetectionException, AccessDeniedException
 
 from settings import (
     LOGGER, BUY_PROXIES_PASSWORD, BUY_PROXIES_USERNAME
@@ -44,9 +45,15 @@ def run(playwright, order):
         url = random.choice(urls)
         page.goto(url)
         page.wait_for_timeout(5000)
-        page.fill("input[id=order]", order['supplier_order_numbers_str'])
+        page.click("input[id=order]")
+        page.type(
+            "input[id=order]", order['supplier_order_numbers_str'], delay=200
+        )
         page.wait_for_timeout(1000)
-        page.fill("input[id=email]", order['user_email'])
+        page.click("input[id=email]")
+        page.type(
+            "input[id=email]", order['user_email'], delay=200
+        )
         page.wait_for_timeout(1000)
         content = '''([x]) => {return fetch('/customer/order/v1/guest/orderdetailsgroup', {method: 'POST', body: '{"orderDetailsRequest": {"orderId": "%s", "emailId": "%s"}}', headers: {'Version': 'HTTP/1.0', 'Accept': 'application/json','Content-Type': 'application/json'}}).then(res => res.json());}'''  # NOQA
         content = content % (order['supplier_order_numbers_str'], order['user_email'])  # NOQA
@@ -56,14 +63,33 @@ def run(playwright, order):
             try:
                 page.click("button[type=submit]")
                 page.wait_for_timeout(5000)
+                if "access denied".lower() in page.content().lower():
+                    raise AccessDeniedException()
+
+                if "please try again shortly.".lower() in page.content().lower():  # noqa
+                    raise BotDetectionException()
+
                 data = page.evaluate(content, [None])
+            except AccessDeniedException:
+                counter = 10
+                break
+            except BotDetectionException:
+                page.click("input[id=order]")
+                page.click("input[id=email]")
+                counter += 1
             except Exception:
-                time.sleep(5)
+                page.wait_for_timeout(5000)
                 counter += 1
             else:
                 break
+
+        if counter == 10:
+            raise Exception("Access Denied, IP is not USA => change IP")
+
         if not data:
             raise Exception("Max retry times exceed!")
+
+        print(data)
         result = StlproAPI().update_ds_order(order['id'], json.dumps(data))
         LOGGER.info(result)
         if result['status'] == 'success':
