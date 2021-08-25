@@ -4,9 +4,9 @@ import time
 
 from playwright.sync_api import sync_playwright
 
-from settings import (LUMINATI_USERNAME, LUMINATI_PASSWORD,
-                      LUMINATI_DOMAIN)
+import settings
 import constants
+from libs.api import StlproAPI
 
 
 class BotManager:
@@ -14,16 +14,28 @@ class BotManager:
         self.playwright = None
         self.browser = None
         self.page = None
-        self.use_chrome = kwargs.get('use_chrome')
-        self.proxy_ip = kwargs.get('proxy_ip')
-        self.proxy_port = kwargs.get('proxy_port')
-        self._proxy_data = None
         self._default_page_width = 1800
         self._default_page_height = 800
+
+        # we only run 2 browsers now: firefox + chrome
+        self.use_chrome = kwargs.get('use_chrome', False)
+
+        # proxies
+        self.proxy_ip = kwargs.get('proxy_ip')
+        self.proxy_port = kwargs.get('proxy_port')
+        self.use_luminati = kwargs.get('use_luminati', False)
+        self.use_proxy = kwargs.get('use_proxy', True)
+
+        # dsh extension
         self._port_range = [24000, 24100]
-        self.use_luminati = kwargs.get('use_luminati')
-        self.use_proxy = kwargs.get('use_proxy')
-        self.proxy_data = (kwargs.get('use_luminati'), kwargs.get('use_proxy'))
+
+        # execute parameters
+        self.active = int(kwargs.get('active', 1))
+        self.offset = int(kwargs.get('offset', 0))
+        self.limit = int(kwargs.get('limit', 25))
+
+        # api
+        self.api = StlproAPI()
 
     def start_playwright(self):
         playwright = sync_playwright().start()
@@ -34,37 +46,27 @@ class BotManager:
 
     @property
     def proxy_data(self):
-        return self._proxy_data
-
-    @proxy_data.setter
-    def proxy_data(self, value):
-        proxy_data = None
-        try:
-            use_luminati, use_proxy = value
-        except ValueError:
-            raise ValueError('Insert two boolean variables.')
-
-        if use_luminati is True:
+        if self.use_luminati:
             proxy_data = {
-                "server": LUMINATI_DOMAIN,
-                "username": LUMINATI_USERNAME,
-                "password": LUMINATI_PASSWORD
+                "server": settings.LUMINATI_DOMAIN,
+                "username": settings.LUMINATI_USERNAME,
+                "password": settings.LUMINATI_PASSWORD
             }
-        if use_proxy is True:
+        if self.use_proxy:
             proxy_data = {
                 "server": '{}:{}'.format(self.proxy_ip, self.proxy_port),
-                # "username": PROXY_USER,
-                # "password": PROXY_PASS
+                "username": settings.BUY_PROXIES_USERNAME,
+                "password": settings.BUY_PROXIES_PASSWORD
             }
 
-        self._proxy_data = proxy_data
+        return proxy_data
 
     def create_browser(self):
         self.start_playwright()
         if self.use_chrome:
             browser = self.playwright.chromium.launch_persistent_context(
                 headless=False,
-                proxy=self._proxy_data,
+                proxy=self.proxy_data,
                 user_data_dir=os.getcwd() + '/user_tmp',
                 args=[
                     f"--disable-extensions-except=\
@@ -73,11 +75,10 @@ class BotManager:
                         {os.getcwd()+'/extensions/dropship-helper'}",
                 ]
             )
-            self.browser = browser
         else:
             browser = self.playwright.firefox.launch(
                 headless=False,
-                proxy=self._proxy_data,
+                proxy=self.proxy_data,
                 firefox_user_prefs={
                     'media.peerconnection.enabled': False,
                     'privacy.trackingprotection.enabled': True,
@@ -91,7 +92,7 @@ class BotManager:
                     'devtools.toolbox.host': 'bottom'
                 }
             )
-            self.browser = browser
+        self.browser = browser
 
     def close_browser(self):
         if self.browser:
