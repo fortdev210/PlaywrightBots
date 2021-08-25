@@ -143,7 +143,9 @@ class WalmartBase(BotManager):
             page_frame.click('div[role="main"]', delay=random.randint(15000, 20000))  # NOQA
             page_frame.wait_for_timeout(random.randint(5000, 10000))
             LOGGER.info("resolve captcha {} {} times".format(ip, i))
+            captcha_detected = self.captcha_detected()
         LOGGER.info("[Captcha] resolve end {}".format(ip))
+        return captcha_detected
 
     def cancel_extra_item(self, extra_item_number):
         content = """

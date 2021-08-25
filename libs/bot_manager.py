@@ -42,7 +42,8 @@ class BotManager:
         self.playwright = playwright
 
     def stop_playwright(self):
-        self.playwright.stop()
+        if self.playwright:
+            self.playwright.stop()
 
     @property
     def proxy_data(self):
