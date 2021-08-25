@@ -6,6 +6,7 @@ from datetime import datetime, timedelta
 
 from walmart.walmart_base import WalmartBase
 from libs.api import StlproAPI
+from libs.exception import BotDetectionException
 from constants import Supplier, EmailStatus, WaitTimeout, VerifierType
 from settings import LOGGER, DATETIME_FORMAT
 
@@ -121,7 +122,11 @@ class WmEmailVerifier(WalmartBase):
             self.signin_walmart(self.email.get('email_value'))
         elif self.verifier_type == VerifierType.ACCOUNT_VERIFIER:
             self.signin_walmart(self.email.get('email'))
-        self.resolve_captcha(self.proxy_ip)
+
+        captcha_detected = self.resolve_captcha(self.proxy_ip)
+        if captcha_detected:
+            raise BotDetectionException()
+
         if self.is_bad_email:
             LOGGER.info('This email is bad.')
             if self.verifier_type == VerifierType.EMAIL_VERIFIER:
