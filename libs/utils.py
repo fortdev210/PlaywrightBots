@@ -1,8 +1,6 @@
 import os
 import re
-import base64
 import json
-import requests
 import random
 import traceback
 from datetime import date, timedelta, datetime
@@ -61,73 +59,6 @@ def check_within_day_order(last_order_date):
         return False
 
 
-def get_ds_orders(supplier_id):
-    url = settings.GET_DS_ORDERS_URL.format(supplier_id=supplier_id)
-    response = requests.get(
-        url,
-        headers={
-            "Authorization": "Basic " + base64.b64encode(
-                bytes('{}:{}'.format(
-                    settings.BUYBOT_USERNAME, settings.BUYBOT_PASSWORD),
-                    encoding="raw_unicode_escape")
-            ).decode()
-        }
-    )
-    return response.json()
-
-
-def get_category_suppliers(supplier_id, limit, offset):
-    url = settings.GET_CATEGORY_SUPPLIER_URL.format(
-        supplier_id=supplier_id, limit=limit, offset=offset
-    )
-    response = requests.get(
-        url,
-        headers={
-            "Authorization": "Basic " + base64.b64encode(
-                bytes('{}:{}'.format(
-                    settings.BUYBOT_USERNAME, settings.BUYBOT_PASSWORD),
-                    encoding="raw_unicode_escape")
-            ).decode()
-        }
-    )
-    return response.json()['results']
-
-
-def update_product_count(category_supplier_id, product_count):
-    url = settings.UPDATE_CATEGORY_SUPPLIER_URL.format(
-        category_supplier_id=category_supplier_id
-    )
-    response = requests.patch(
-        url,
-        headers={
-            "Authorization": "Basic " + base64.b64encode(
-                bytes('{}:{}'.format(
-                    settings.BUYBOT_USERNAME, settings.BUYBOT_PASSWORD),
-                    encoding="raw_unicode_escape")
-            ).decode()
-        },
-        json={'product_count': product_count}
-    )
-    settings.LOGGER.info(response.json())
-    return response.json()
-
-
-def update_ds_order(ds_order_id, data):
-    url = settings.UPDATE_DS_ORDER_INFO_URL.format(ds_order_id=ds_order_id)
-    response = requests.post(
-        url,
-        headers={
-            "Authorization": "Basic " + base64.b64encode(
-                bytes('{}:{}'.format(
-                    settings.BUYBOT_USERNAME, settings.BUYBOT_PASSWORD),
-                    encoding="raw_unicode_escape")
-            ).decode()
-        },
-        json={'data': data, 'confirmed_by': settings.CONFIRMED_BY}
-    )
-    return response.json()
-
-
 def update_scraped_results(page, supplier, results, start_time, total_item):
     if not results:
         return False
@@ -158,39 +89,6 @@ def update_scraped_results(page, supplier, results, start_time, total_item):
     page.click('button[class="btn btn-outline-primary"]')
     page.wait_for_timeout(random.randint(3000, 5000))
     print(page.url)
-
-
-def get_proxy_ips(supplier_id):
-    url = settings.GET_PROXIES_URL.format(supplier_id=supplier_id)
-    response = requests.get(
-        url,
-        headers={
-            "Authorization": "Basic " + base64.b64encode(
-                bytes('{}:{}'.format(
-                    settings.BUYBOT_USERNAME,
-                    settings.BUYBOT_PASSWORD
-                ), encoding="raw_unicode_escape")
-            ).decode()
-        }
-    )
-    return response.json()
-
-
-def get_current_products(supplier_id, active, offset=0, limit=100):
-    url = settings.GET_CURRENT_PRODUCT_URL.format(
-        supplier_id=supplier_id, active=active, limit=limit, offset=offset
-    )
-    response = requests.get(
-        url,
-        headers={
-            "Authorization": "Basic " + base64.b64encode(
-                bytes('{}:{}'.format(
-                    settings.BUYBOT_USERNAME, settings.BUYBOT_PASSWORD
-                ), encoding="raw_unicode_escape")
-            ).decode()
-        }
-    )
-    return response.json()['results']
 
 
 def find_value_by_markers(response, start_list, end_marker, to_end=False):

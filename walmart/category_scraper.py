@@ -14,11 +14,11 @@ from libs.exception import CaptchaResolveException
 from libs.walmart.base import resolve_captcha
 
 from libs.utils import (
-    update_scraped_results, get_category_suppliers,
-    update_product_count
+    update_scraped_results,
 )
 from settings import LOGGER
 from walmart.base_scraper import BaseScraper
+from libs.api import StlproAPI
 
 
 class WMCategoryScraper(BaseScraper):
@@ -31,7 +31,7 @@ class WMCategoryScraper(BaseScraper):
         self.product_count = 0
 
     def fetch_items(self):
-        self.items = get_category_suppliers(
+        self.items = StlproAPI().get_category_suppliers(
             self.supplier_id, self.limit, self.offset
         )
         self.total_item = len(self.items)
@@ -132,7 +132,7 @@ class WMCategoryScraper(BaseScraper):
         for item in self.items:
             if not item['product_count']:
                 continue
-            update_product_count(
+            StlproAPI().update_product_count(
                 category_supplier_id=item['id'],
                 product_count=item['product_count']
             )
