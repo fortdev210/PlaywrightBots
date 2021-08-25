@@ -6,6 +6,7 @@ from datetime import datetime, timedelta
 
 from walmart.walmart_base import WalmartBase
 from libs.api import StlproAPI
+from libs.exception import CaptchaResolveException
 from constants import Supplier, EmailStatus, WaitTimeout, VerifierType
 from settings import LOGGER, DATETIME_FORMAT
 
@@ -30,7 +31,8 @@ class WmEmailVerifier(WalmartBase):
                 orders_json = json.loads(data)
                 orders = orders_json['recentOrders']['orders']
                 return orders
-        except Exception:
+        except Exception as e:
+            LOGGER.exception(e, exc_info=True)
             LOGGER.error('Error while getting order info.')
         return None
 
@@ -106,50 +108,61 @@ class WmEmailVerifier(WalmartBase):
         except Exception:
             LOGGER.info('No Gift cards available.')
         if self.verifier_type == VerifierType.EMAIL_VERIFIER:
-            StlproAPI().update_email_status(
+            self.api.update_email_status(
                 self.email.get('id'), EmailStatus.GOOD)
         else:
-            StlproAPI().update_account_status(
+            self.api.update_account_status(
                 self.email.get('id'),
                 EmailStatus.GOOD,
                 self.email.get('last_used_at'))
         self.close_browser()
 
     def run(self):
-        self.open_sign_up_page()
-        if self.verifier_type == VerifierType.EMAIL_VERIFIER:
-            self.signin_walmart(self.email.get('email_value'))
-        elif self.verifier_type == VerifierType.ACCOUNT_VERIFIER:
-            self.signin_walmart(self.email.get('email'))
-        self.resolve_captcha(self.proxy_ip)
-        if self.is_bad_email:
-            LOGGER.info('This email is bad.')
+        try:
+            self.open_sign_up_page()
             if self.verifier_type == VerifierType.EMAIL_VERIFIER:
-                StlproAPI().update_email_status(
-                    self.email.get('id'), EmailStatus.BANNED)
-            else:
-                StlproAPI().update_account_status(
-                    self.email.get('id'), EmailStatus.BANNED)
-            self.close_browser()
-            return
-        self.change_password()
-        self.open_order_history()
-        order_data = self.get_order_data(self.page)
-        is_canceled = self.check_order_canceled(order_data)
-        if is_canceled:
-            LOGGER.info('Order is canceled. Marking as banned.')
-            StlproAPI().update_email_status(
-                self.email.get('id'), EmailStatus.BANNED)
-            self.close_browser()
-            return
-        else:
-            LOGGER.info('Checking cart and removing items in the cart.')
-            self.open_cart_page()
-            self.remove_items_in_cart()
-            self.delete_address_registry()
-            self.remove_gift_cards()
-        LOGGER.info('success.')
+                self.signin_walmart(self.email.get('email_value'))
+            elif self.verifier_type == VerifierType.ACCOUNT_VERIFIER:
+                self.signin_walmart(self.email.get('email'))
 
+            captcha_detected = self.resolve_captcha(self.proxy_ip)
+            if captcha_detected:
+                raise CaptchaResolveException()
+
+            if self.is_bad_email:
+                LOGGER.info('This email is bad.')
+                if self.verifier_type == VerifierType.EMAIL_VERIFIER:
+                    self.api.update_email_status(
+                        self.email.get('id'), EmailStatus.BANNED)
+                else:
+                    self.api.update_account_status(
+                        self.email.get('id'), EmailStatus.BANNED)
+                self.close_browser()
+                return
+            self.change_password()
+            self.open_order_history()
+            order_data = self.get_order_data(self.page)
+            is_canceled = self.check_order_canceled(order_data)
+            if is_canceled:
+                LOGGER.info('Order is canceled. Marking as banned.')
+                self.api.update_email_status(
+                    self.email.get('id'), EmailStatus.BANNED)
+                self.close_browser()
+                return
+            else:
+                LOGGER.info('Checking cart and removing items in the cart.')
+                self.open_cart_page()
+                self.remove_items_in_cart()
+                self.delete_address_registry()
+                self.remove_gift_cards()
+            LOGGER.info('success.')
+        except CaptchaResolveException:
+            LOGGER.error('Cant resolve captcha. Try with another proxy later.')
+            self.close_browser()
+        except Exception as e:
+            LOGGER.exception(e, exc_info=True)
+            LOGGER.error('Failed: ' + self.email['email'] or self.email['email_value'])
+            self.close_browser()
 
 if __name__ == '__main__':
     verifier_type = int(sys.argv[1])
