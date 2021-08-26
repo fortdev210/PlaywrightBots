@@ -40,11 +40,6 @@ mkdir -p logs/homedepot/
 ```
 
 
-## Run
-
-`python walmart/wm_order_status_buyproxies.py 0 20`
-
-
 ## How to work on this project
 
 ### Source code structure
@@ -54,12 +49,18 @@ mkdir -p logs/homedepot/
 3. `walmart`: all Walmart bots
 4. `libs`: all needed libraries, customized code
 
-# Start Walmart scraper
+### Coding convention
+
+- The executable file should be start with "run_" (ex: `run_order_status_scraper.py`)
+- The processing class should be place in to the libs directory (ex: `libs/homedepot/order_status_scraper.py`)
+- The same attribute should be place in to mixin class (see: `libs.walmart.mixin.WalmartMixin`)
+
+# Run scrapers
 
 ## Start Walmart product scraper
 - Run: 
   
-  `python walmart/product_scraper.py active_status(0 or 1) start_range end_range`
+  `python walmart/run_product_scraper.py active_status(0 or 1) start_range end_range`
   
 - Example 
   
@@ -68,8 +69,14 @@ mkdir -p logs/homedepot/
 ## Start Walmart category detail scraper
 - Run: 
   
-  `python walmart/category_scraper.py start_range end_range`
+  `python walmart/run_category_scraper.py start_range end_range`
   
 - Example 
   
-`python walmart/category_scraper.py 0 20`
+`python walmart/run_category_scraper.py 0 20`
+
+## Start HomeDepot order status scraper
+
+- Run:
+
+  ``

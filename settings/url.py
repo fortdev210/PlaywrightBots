@@ -25,7 +25,6 @@ WALMART_ORDER_HISTORY_LINK = "https://www.walmart.com/account/wmpurchasehistory"
 WALMART_CART_LINK = "https://www.walmart.com/cart"
 WALMART_REGISTRY_LINK = "https://www.walmart.com/lists/manage-events-registry-settings"
 WALMART_PAYMENT_METHODS_LINK = "https://www.walmart.com/account/creditcards"
-GET_PROXIES_URL = "http://admin.stlpro.com/v2/ip_supplier/?is_potential_banned=false&is_buyproxies_ip=true&supplier={supplier_id}&limit=500&batch_id=order_status"  # NOQA
 GET_CURRENT_PRODUCT_URL = BASE_URL + "v2/current_product/get_item_for_scrape/?use_scraped_url={active}&limit={limit}&offset={offset}&supplier_id={supplier_id}&active={active}"  # NOQA
 IMPORT_CURRENT_PRODUCT_SCRAPED_DATA_URL = BASE_URL + \
     "admin/login/?next=/history/import_current_product_scraped_data/"

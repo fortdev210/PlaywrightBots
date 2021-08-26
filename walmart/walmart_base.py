@@ -1,6 +1,7 @@
 import random
 
 from libs.bot_manager import BotManager
+from libs.walmart.mixin import WalmartMixin
 from settings import LOGGER, WALMART_PASSWORD, WALMART_OLD_PASSWORDS
 from settings.url import (
     WALMART_REG_LINK,
@@ -8,7 +9,7 @@ from settings.url import (
     WALMART_CART_LINK, WALMART_REGISTRY_LINK, WALMART_PAYMENT_METHODS_LINK)
 
 
-class WalmartBase(BotManager):
+class WalmartBase(WalmartMixin, BotManager):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.order_info = kwargs.get('order_info')
@@ -81,12 +82,6 @@ class WalmartBase(BotManager):
         self.wait_element_loading('[data-automation-id="signup-submit-btn"]')
         self.click_element('[data-automation-id="signup-submit-btn"]')
 
-    def captcha_detected(self):
-        self.sleep(3)
-        if self.page.is_visible('div[class="captcha re-captcha"]'):
-            return True
-        return False
-
     def change_password(self):
         if self.should_change_password and not self.is_bad_email \
                 and self.wm_current_password:
@@ -130,22 +125,6 @@ class WalmartBase(BotManager):
         ]
         url = random.choice(urls)
         return url
-
-    def resolve_captcha(self, ip):
-        i = 0
-        captcha_detected = self.captcha_detected()
-        while captcha_detected and i < 3:
-            i += 1
-            frame = self.page.frames[-1]
-            page_frame = frame.page
-            page_frame.hover('div[role="main"]')
-            page_frame.focus('div[role="main"]')
-            page_frame.click('div[role="main"]', delay=random.randint(15000, 20000))  # NOQA
-            page_frame.wait_for_timeout(random.randint(5000, 10000))
-            LOGGER.info("resolve captcha {} {} times".format(ip, i))
-            captcha_detected = self.captcha_detected()
-        LOGGER.info("[Captcha] resolve end {}".format(ip))
-        return captcha_detected
 
     def cancel_extra_item(self, extra_item_number):
         content = """

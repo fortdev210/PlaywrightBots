@@ -1,7 +1,7 @@
 import sys
 import time
 
-from homedepot.order_status import HomeDepotOrderStatusScraper
+from libs.homedepot import HomeDepotOrderStatusScraper
 
 
 if __name__ == "__main__":
