@@ -161,8 +161,9 @@ class WmEmailVerifier(WalmartBase):
             self.close_browser()
         except Exception as e:
             LOGGER.exception(e, exc_info=True)
-            LOGGER.error('Failed: ' + self.email['email'] or self.email['email_value'])
+            LOGGER.error('Failed: ' + self.email['email'] or self.email['email_value'])  # NOQA
             self.close_browser()
+
 
 if __name__ == '__main__':
     verifier_type = int(sys.argv[1])

@@ -6,21 +6,21 @@ from copy import deepcopy
 
 import constants
 import settings
-from libs.walmart.base import resolve_captcha
+from libs.walmart.mixin import WalmartMixin
 
 from libs.utils import (
-    update_scraped_results,
     find_value_by_markers, get_json_value_by_key_safely
 )
 from settings import LOGGER
 from libs.api import StlproAPI
-from walmart.base_scraper import BaseScraper
+from libs.base_scraper import BaseScraper
 
 
-class WMProductScraper(BaseScraper):
+class WalmartProductScraper(WalmartMixin, BaseScraper):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.start_key = ['item']
+        self.supplier_id = constants.Supplier.WALMART_CODE
 
     def fetch_items(self):
         self.items = StlproAPI().get_current_products(
@@ -52,7 +52,7 @@ class WMProductScraper(BaseScraper):
                 lambda route: route.continue_()
             )
             self.page.reload()
-            resolve_captcha(self.page, item['ip'])
+            self.resolve_captcha(item['ip'])
             LOGGER.error("[Captcha] get {}".format(item['ip']))
             return
         else:
@@ -65,10 +65,7 @@ class WMProductScraper(BaseScraper):
             self.results.append(result)
 
     def update_result(self):
-        update_scraped_results(
-            self.page, self.supplier_id, self.results,
-            self.start_time, self.total_item
-        )
+        self.update_scraped_results()
 
     def parse(self, response, proxy_ip, item_id):
         result = deepcopy(settings.BASE_SCRAPED_ITEM)
@@ -244,7 +241,7 @@ if __name__ == "__main__":
     limit = int(end) - int(start)
     while True:
         try:
-            scraper = WMProductScraper(
+            scraper = WalmartProductScraper(
                 supplier_id=constants.Supplier.WALMART_CODE,
                 active=active,
                 offset=offset,

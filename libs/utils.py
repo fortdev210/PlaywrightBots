@@ -1,7 +1,5 @@
 import os
 import re
-import json
-import random
 import traceback
 from datetime import date, timedelta, datetime
 
@@ -57,38 +55,6 @@ def check_within_day_order(last_order_date):
         return True
     else:
         return False
-
-
-def update_scraped_results(page, supplier, results, start_time, total_item):
-    if not results:
-        return False
-    page.goto(settings.IMPORT_CURRENT_PRODUCT_SCRAPED_DATA_URL)
-    # login
-    page.fill("input[id=id_username]", settings.BUYBOT_USERNAME)
-    page.fill("input[id=id_password]", settings.BUYBOT_PASSWORD)
-    page.click("input[type=submit]")
-    page.wait_for_timeout(5000)
-    end_time = datetime.datetime.utcnow()
-    start_time_str = start_time.strftime(settings.DATETIME_FORMAT)
-    end_time_str = end_time.strftime(settings.DATETIME_FORMAT)
-    file_name = f'{start_time_str}_{end_time_str}_{total_item}.txt'
-    # fill form
-    page.select_option("select[id=id_last_scraped_by]", str(settings.PLAYWRIGHT))  # NOQA
-    page.select_option("select[id=id_supplier]", supplier)
-    buffer = '\n'.join([json.dumps(row) for row in results])
-    # Upload buffer from memory
-    page.set_input_files(
-        "input[id=id_file]",
-        files=[
-            {
-                "name": file_name, "mimeType": "text/plain",
-                "buffer": buffer.encode()
-            }
-        ],
-    )
-    page.click('button[class="btn btn-outline-primary"]')
-    page.wait_for_timeout(random.randint(3000, 5000))
-    print(page.url)
 
 
 def find_value_by_markers(response, start_list, end_marker, to_end=False):

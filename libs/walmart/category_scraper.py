@@ -11,17 +11,13 @@ from playwright._impl._api_types import TimeoutError
 import constants
 import settings
 from libs.exception import CaptchaResolveException
-from libs.walmart.base import resolve_captcha
-
-from libs.utils import (
-    update_scraped_results,
-)
+from libs.walmart.mixin import WalmartMixin
 from settings import LOGGER
-from walmart.base_scraper import BaseScraper
+from libs.base_scraper import BaseScraper
 from libs.api import StlproAPI
 
 
-class WMCategoryScraper(BaseScraper):
+class WalmartCategoryScraper(WalmartMixin, BaseScraper):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.base_grocery_api = constants.Supplier.WALMART_GROCERY_API
@@ -29,6 +25,7 @@ class WMCategoryScraper(BaseScraper):
         self.base_search_shelf_id_api = constants.Supplier.WALMART_SEARCH_SHELF_ID_API  # NOQA
         self.paginate_urls = []
         self.product_count = 0
+        self.supplier_id=constants.Supplier.WALMART_CODE
 
     def fetch_items(self):
         self.items = StlproAPI().get_category_suppliers(
@@ -70,7 +67,7 @@ class WMCategoryScraper(BaseScraper):
                 lambda route: route.continue_()
             )
             self.page.reload()
-            resolve_captcha(self.page, self.current_proxy['ip'])
+            self.resolve_captcha(self.current_proxy['ip'])
             LOGGER.error("[Captcha] get {}".format(self.current_proxy['ip']))
 
         for item in self.items:
@@ -114,7 +111,7 @@ class WMCategoryScraper(BaseScraper):
                     lambda route: route.continue_()
                 )
                 self.page.reload()
-                resolve_captcha(self.page, item['ip'])
+                self.resolve_captcha(item['ip'])
                 LOGGER.error("[Captcha] get {}".format(item['ip']))
                 return
             else:
@@ -125,10 +122,7 @@ class WMCategoryScraper(BaseScraper):
     def update_result(self):
         if not self.total_item or not self.items:
             return
-        update_scraped_results(
-            self.page, self.supplier_id, self.results,
-            self.start_time, self.total_item
-        )
+        self.update_scraped_results()
         for item in self.items:
             if not item['product_count']:
                 continue
@@ -289,7 +283,7 @@ if __name__ == "__main__":
     limit = int(end) - int(start)
     while True:
         try:
-            scraper = WMCategoryScraper(
+            scraper = WalmartCategoryScraper(
                 supplier_id=constants.Supplier.WALMART_CODE,
                 offset=offset,
                 limit=limit
