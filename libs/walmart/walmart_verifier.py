@@ -105,6 +105,8 @@ class WalmartVerifier(WalmartBase):
 
         except Exception:
             LOGGER.info('No Gift cards available.')
+
+    def update_status(self):
         if self.verifier_type == VerifierType.EMAIL_VERIFIER:
             self.api.update_email_status(
                 self.email.get('id'), EmailStatus.GOOD)
@@ -112,7 +114,7 @@ class WalmartVerifier(WalmartBase):
             self.api.update_account_status(
                 self.email.get('id'),
                 EmailStatus.GOOD,
-                self.email.get('last_used_at'))
+                None)
         self.close_browser()
 
     def run(self):
@@ -153,6 +155,7 @@ class WalmartVerifier(WalmartBase):
                 self.remove_items_in_cart()
                 self.delete_address_registry()
                 self.remove_gift_cards()
+                self.update_status()
             LOGGER.info('success.')
         except CaptchaResolveException:
             LOGGER.error('Cant resolve captcha. Try with another proxy later.')
