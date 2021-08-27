@@ -1,7 +1,6 @@
 import sys
 import time
 
-import constants
 from libs.walmart.category_scraper import WalmartCategoryScraper
 
 from settings import LOGGER

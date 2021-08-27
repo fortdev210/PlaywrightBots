@@ -2,7 +2,7 @@ import us
 
 from libs.utils import schedule_date
 from settings import LOGGER, WALMART_ITEM_LINK, WALMART_CART_LINK
-from .walmart_base import WalmartBase
+from libs.walmart.walmart_base import WalmartBase
 from constants import MAX_WAIT_TIME
 
 
