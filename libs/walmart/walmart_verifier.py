@@ -1,17 +1,15 @@
 import re
 import json
-import random
-import sys
-from datetime import datetime, timedelta
+
 
 from libs.walmart.walmart_base import WalmartBase
-from libs.api import StlproAPI
+
 from libs.exception import CaptchaResolveException
-from constants import Supplier, EmailStatus, WaitTimeout, VerifierType
-from settings import LOGGER, DATETIME_FORMAT
+from constants import EmailStatus, WaitTimeout, VerifierType
+from settings import LOGGER
 
 
-class WmEmailVerifier(WalmartBase):
+class WalmartVerifier(WalmartBase):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.email = kwargs.get('email')
@@ -163,34 +161,3 @@ class WmEmailVerifier(WalmartBase):
             LOGGER.exception(e, exc_info=True)
             LOGGER.error('Failed: ' + self.email['email'] or self.email['email_value'])  # NOQA
             self.close_browser()
-
-
-if __name__ == '__main__':
-    verifier_type = int(sys.argv[1])
-    if verifier_type:
-        verifier_type = VerifierType.ACCOUNT_VERIFIER
-        last_used_date = (datetime.utcnow() - timedelta(days=90)
-                          ).strftime(DATETIME_FORMAT).replace('T', ' ')
-        emails = StlproAPI().get_account_supplier(
-            last_used_date=last_used_date)
-
-    else:
-        verifier_type = VerifierType.EMAIL_VERIFIER
-        emails = StlproAPI().get_email_supplier()
-
-    proxies = StlproAPI().get_proxy_ips(Supplier.WALMART_CODE)
-    for email in emails:
-        LOGGER.info('-------------------------------------------')
-        LOGGER.info(email)
-        proxy = random.choice(proxies)
-        proxy_ip = proxy.get('ip')
-        proxy_port = proxy.get('port')
-        LOGGER.info('proxy: {proxy_ip}:{proxy_port}'.format(
-            proxy_ip=proxy_ip, proxy_port=proxy_port))
-        bot = WmEmailVerifier(
-            use_chrome=False, use_luminati=False, use_proxy=True,
-            proxy_ip=proxy_ip, proxy_port=proxy_port,
-            email=email, verifier_type=verifier_type)
-
-        bot.run()
-        LOGGER.info('')
