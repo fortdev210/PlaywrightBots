@@ -25,7 +25,7 @@ class WalmartCategoryScraper(WalmartMixin, BaseScraper):
         self.base_search_shelf_id_api = constants.Supplier.WALMART_SEARCH_SHELF_ID_API  # NOQA
         self.paginate_urls = []
         self.product_count = 0
-        self.supplier_id=constants.Supplier.WALMART_CODE
+        self.supplier_id = constants.Supplier.WALMART_CODE
 
     def fetch_items(self):
         self.items = StlproAPI().get_category_suppliers(

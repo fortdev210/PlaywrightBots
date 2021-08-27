@@ -1,12 +1,9 @@
 import random
 import re
-import sys
-import time
 
-from constants import Supplier
-from walmart.walmart_base import WalmartBase
+
+from libs.walmart.walmart_base import WalmartBase
 from settings import LOGGER
-from libs.api import StlproAPI
 from libs.exception import CaptchaResolveException
 
 
@@ -52,30 +49,3 @@ class WalmartOrderStatus(WalmartBase):
             LOGGER.error("Failed: " + self.order['supplier_order_numbers_str'])
         self.close_browser()
         self.sleep(5)
-
-
-if __name__ == '__main__':
-    start = int(sys.argv[1])
-    end = int(sys.argv[2])
-    while True:
-        orders = StlproAPI().get_ds_orders(supplier_id=Supplier.WALMART_CODE)
-        LOGGER.info(f"Get {len(orders)} orders")
-        proxies = StlproAPI().get_proxy_ips(Supplier.WALMART_CODE)
-        orders = orders[start:end]
-        random.shuffle(orders)
-
-        for order in orders:
-            LOGGER.info('-------------------------------------------')
-            LOGGER.info(order)
-            proxy = random.choice(proxies)
-            proxy_ip = proxy.get('ip')
-            proxy_port = proxy.get('port')
-            LOGGER.info('proxy: {proxy_ip}:{proxy_port}'.format(
-                proxy_ip=proxy_ip, proxy_port=proxy_port))
-            bot = WalmartOrderStatus(
-                use_chrome=False, use_luminati=False, use_proxy=True,
-                proxy_ip=proxy_ip, proxy_port=proxy_port, order=order
-            )
-            bot.run()
-            LOGGER.info('')
-        time.sleep(5*60)

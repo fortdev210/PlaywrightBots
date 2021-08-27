@@ -4,7 +4,7 @@ import random
 import sys
 from datetime import datetime, timedelta
 
-from walmart.walmart_base import WalmartBase
+from libs.walmart.walmart_base import WalmartBase
 from libs.api import StlproAPI
 from libs.exception import CaptchaResolveException
 from constants import Supplier, EmailStatus, WaitTimeout, VerifierType
