@@ -199,3 +199,11 @@ class StlproAPI:
             headers=self._headers
         )
         return response.json()['results']
+
+    def get_extra_item_cancel_orders(self):
+        url = settings.GET_EXTRA_ITEM_CANCEL_URL
+        response = requests.get(
+            url,
+            headers=self._headers
+        )
+        return response.json()['results']

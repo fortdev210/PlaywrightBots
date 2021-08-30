@@ -168,6 +168,7 @@ class WalmartBase(WalmartMixin, BotManager):
                     .querySelector('[type="submit"]')
                     .click();
                 """
+                self.page.evaluate(content)
                 LOGGER.info("Successfully cancelled extra item.")
             except Exception:
                 LOGGER.error("Failed to select the reason.")
