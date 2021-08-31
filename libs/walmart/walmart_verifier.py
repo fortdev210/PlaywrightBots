@@ -129,6 +129,13 @@ class WalmartVerifier(WalmartBase):
             if captcha_detected:
                 raise CaptchaResolveException()
 
+            try:
+                self.wait_element_loading(
+                    "text=Your password and email do not match.")
+                self.is_bad_email = True
+            except Exception:
+                pass
+
             if self.is_bad_email:
                 LOGGER.info('This email is bad.')
                 if self.verifier_type == VerifierType.EMAIL_VERIFIER:
@@ -162,5 +169,8 @@ class WalmartVerifier(WalmartBase):
             self.close_browser()
         except Exception as e:
             LOGGER.exception(e, exc_info=True)
-            LOGGER.error('Failed: ' + self.email['email'] or self.email['email_value'])  # NOQA
+            if self.verifier_type == VerifierType.EMAIL_VERIFIER:
+                LOGGER.error('Failed: ' + self.email['email_value'])
+            else:
+                LOGGER.error('Failed: ' + self.email['email'])
             self.close_browser()
