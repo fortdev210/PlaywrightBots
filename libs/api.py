@@ -140,7 +140,8 @@ class StlproAPI:
         return res.get('results')
 
     def update_email_status(self, id, status):
-        url = settings.UPDATE_EMAIL_STATUS + str(id)
+        url = settings.UPDATE_EMAIL_STATUS + str(id) + '/'
+
         response = requests.patch(
             url,
             headers=self._headers,
@@ -160,7 +161,7 @@ class StlproAPI:
         return res.get('results')
 
     def update_account_status(self, id, status, last_used_date):
-        url = settings.UPDATE_ACCOUNT_STATUS + str(id)
+        url = settings.UPDATE_ACCOUNT_STATUS + str(id) + '/'
         response = requests.patch(
             url,
             headers=self._headers,

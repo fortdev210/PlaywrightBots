@@ -16,8 +16,15 @@ GET_EMAIL_SUPPLIER = BASE_URL + \
     "v2/email_supplier_verify/?status=0&supplier=W&limit=500"
 GET_ACCOUNT_SUPPLIER = BASE_URL + \
     "v2/account_supplier_verify/?status=0&supplier=W&last_used_at_from={last_used_at_from}&limit=10000"
-UPDATE_EMAIL_STATUS = BASE_URL + "v2/email_supplier/"
-UPDATE_ACCOUNT_STATUS = BASE_URL + "v2/account_supplier/"
+UPDATE_EMAIL_STATUS = BASE_URL + "v2/email_supplier_verify/"
+UPDATE_ACCOUNT_STATUS = BASE_URL + "v2/account_supplier_verify/"
+
+WALMART_REG_LINK = 'https://www.walmart.com/account/login'
+WALMART_ACCOUNT_LINK = 'https://www.walmart.com/account/profile'
+WALMART_ORDER_HISTORY_LINK = "https://www.walmart.com/account/wmpurchasehistory"
+WALMART_CART_LINK = "https://www.walmart.com/cart"
+WALMART_REGISTRY_LINK = "https://www.walmart.com/lists/manage-events-registry-settings"
+WALMART_PAYMENT_METHODS_LINK = "https://www.walmart.com/account/creditcards"
 GET_CURRENT_PRODUCT_URL = BASE_URL + "v2/current_product/get_item_for_scrape/?use_scraped_url={active}&limit={limit}&offset={offset}&supplier_id={supplier_id}&active={active}"  # NOQA
 IMPORT_CURRENT_PRODUCT_SCRAPED_DATA_URL = BASE_URL + \
     "admin/login/?next=/history/import_current_product_scraped_data/"
