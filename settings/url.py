@@ -10,12 +10,12 @@ GIFT_CARD_SEND_CURRENT_CARD_URL = BASE_URL + \
     "v2/ds_order/{ds_order_id}/update_gift_card_usage/"
 GIFT_CARD_GET_NEXT_CARD_URL = BASE_URL + \
     "v2/ds_order/{ds_order_id}/next_gift_card/"
-GET_PROXIES_URL = BASE_URL + "v2/ip_supplier/?is_potential_banned=false&is_buyproxies_ip=true&supplier={supplier_id}&limit=500&batch_id=order_status/"  # NOQA
+GET_PROXIES_URL = BASE_URL + "v2/ip_supplier/?is_potential_banned=false&is_buyproxies_ip=true&supplier={supplier_id}&limit=500&batch_id=order_status"  # NOQA
 CONFIRMED_BY = 5  # Playwright bot
 GET_EMAIL_SUPPLIER = BASE_URL + \
-    "v2/email_supplier_verify/?status=0&supplier=W&limit=500/"
+    "v2/email_supplier_verify/?status=0&supplier=W&limit=500"
 GET_ACCOUNT_SUPPLIER = BASE_URL + \
-    "v2/account_supplier_verify/?status=0&supplier=W&last_used_at_from={last_used_at_from}&limit=10000/"
+    "v2/account_supplier_verify/?status=0&supplier=W&last_used_at_from={last_used_at_from}&limit=10000"
 UPDATE_EMAIL_STATUS = BASE_URL + "v2/email_supplier_verify/"
 UPDATE_ACCOUNT_STATUS = BASE_URL + "v2/account_supplier_verify/"
 
