@@ -126,19 +126,27 @@ class WalmartBase(WalmartMixin, BotManager):
         url = random.choice(urls)
         return url
 
+    def get_item_status(self, item_number):
+        try:
+            content = """
+                ([itemNumber]) => {
+                    const selector = `[href="/ip/${itemNumber}"]`;
+                    const parent = document.querySelector([selector]).
+                        parentElement.parentElement.parentElement.
+                        parentElement.parentElement;
+                    return parent.querySelector(
+                        '[data-automation-id="shipment-status"]').innerText;
+                }
+            """
+            item_status = self.page.evaluate(content, [item_number])
+            return item_status
+        except Exception:
+            LOGGER.error('Failed to get the item status: %s', item_number)
+            return ''
+
     def cancel_extra_item(self, extra_item_number):
-        content = """
-            ([extraItemNumber]) => {
-                const selector = `[href="/ip/${extraItemNumber}"]`;
-                const parent = document.querySelector([selector]).
-                    parentElement.parentElement.parentElement.
-                    parentElement.parentElement;
-                return parent.querySelector(
-                    '[data-automation-id="shipment-status"]').innerText;
-            }
-        """
-        extra_item_status = self.page.evaluate(content, [extra_item_number])
-        LOGGER.info(f'Extra item status is {extra_item_status}')
+        extra_item_status = self.get_item_status(extra_item_number)
+        LOGGER.info("Extra item status: %s", extra_item_status)
 
         if 'arrives by' in extra_item_status.lower():
             content = """

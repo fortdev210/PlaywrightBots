@@ -1,0 +1,4 @@
+2021/08/31-13:42:35.394 62d4 Creating DB /home/jeff/Projects/PlaywrightBots/user_tmp/Default/shared_proto_db since it was missing.
+2021/08/31-13:42:35.618 62d4 Reusing MANIFEST /home/jeff/Projects/PlaywrightBots/user_tmp/Default/shared_proto_db/MANIFEST-000001
+2021/08/31-13:42:35.619 62d4 Recovering log #3
+2021/08/31-13:42:35.619 62d4 Reusing old log /home/jeff/Projects/PlaywrightBots/user_tmp/Default/shared_proto_db/000003.log
