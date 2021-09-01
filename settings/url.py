@@ -32,3 +32,16 @@ GET_CATEGORY_SUPPLIER_URL = BASE_URL + \
     'v2/category_supplier/?supplier={supplier_id}&limit={limit}&offset={offset}'
 UPDATE_CATEGORY_SUPPLIER_URL = BASE_URL + \
     'v2/category_supplier/{category_supplier_id}/'
+GET_EXTRA_ITEM_CANCEL_URL = BASE_URL + \
+    'v2/ds_order/?buyer_name=&ds_status_filter=Purchased+Acknowledged+Confirmed&extra_items=Extra+Item&extra_items_canceled=NOT+canceled&finished=&not_found=&ordering=-ended_at&paid=&started_at_filter=Last+7+days&supplier=W'
+UPDATE_EXTRA_ITEM_STATUS_URL = BASE_URL + \
+    'v2/ds_order/{id}/cancel_extra_items/'
+UPDATE_DS_ORDER_STATUS_URL = BASE_URL + \
+    'v2/ds_order/{id}/'
+
+WALMART_REG_LINK = 'https://www.walmart.com/account/login'
+WALMART_ACCOUNT_LINK = 'https://www.walmart.com/account/profile'
+WALMART_ORDER_HISTORY_LINK = "https://www.walmart.com/account/wmpurchasehistory"
+WALMART_CART_LINK = "https://www.walmart.com/cart"
+WALMART_REGISTRY_LINK = "https://www.walmart.com/lists/manage-events-registry-settings"
+WALMART_PAYMENT_METHODS_LINK = "https://www.walmart.com/account/creditcards"

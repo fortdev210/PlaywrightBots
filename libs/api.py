@@ -200,3 +200,33 @@ class StlproAPI:
             headers=self._headers
         )
         return response.json()['results']
+
+    def get_extra_item_cancel_orders(self):
+        url = settings.GET_EXTRA_ITEM_CANCEL_URL
+        response = requests.get(
+            url,
+            headers=self._headers
+        )
+        return response.json()['results']
+
+    def update_extra_item_status(
+            self, ds_order_id, supplier_order_number, status):
+        url = settings.UPDATE_EXTRA_ITEM_STATUS_URL.format(id=ds_order_id)
+        response = requests.patch(
+            url,
+            headers=self._headers,
+            data={
+                "supplier_order_number": supplier_order_number,
+                "status": status
+            }
+        )
+        return response.json()
+
+    def update_ds_order_status(self, ds_order_id, status):
+        url = settings.UPDATE_DS_ORDER_STATUS_URL.format(id=ds_order_id)
+        response = requests.patch(
+            url,
+            headers=self._headers,
+            data={"ds_status": status}
+        )
+        return response.json()
