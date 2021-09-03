@@ -42,8 +42,8 @@ class WalmartCancelExtraItem(WalmartBase):
                         self.order.get(
                             'id'), DropShipOrderStatus.CANCELLATION_REVIEW
                     )
+                LOGGER.info('Successfully updated')
             self.close_browser()
-            LOGGER.info('Successfully updated')
         except CaptchaResolveException:
             LOGGER.error('Cant resolve captcha.Try with another proxy later.')
             self.close_browser()
