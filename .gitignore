@@ -23,3 +23,5 @@ luminati.config.*
 # Log files
 *.log
 note
+logs/*
+!logs/empty

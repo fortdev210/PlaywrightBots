@@ -1,7 +1,5 @@
 import random
 import re
-import sys
-import time
 import traceback
 from copy import deepcopy
 
@@ -35,6 +33,12 @@ class WalmartCategoryScraper(WalmartMixin, BaseScraper):
 
     def build_api_url(self, item):
         url = item['url']
+        regex = r"/\d{3,9}\_\d{3,9}\?|/\d{3,9}\_\d{3,9}$|/\d{3,9}_\d{3,9}_\d{3,9}\?|\d{3,9}_\d{3,9}_\d{3,9}$|/\d{3,9}_\d{3,9}_\d{3,9}_\d{3,9}\?|/\d{3,9}_\d{3,9}_\d{3,9}_\d{3,9}$|/\d{3,9}_\d{3,9}_\d{3,9}_\d{3,9}_\d{3,9}\?|/\d{3,9}_\d{3,9}_\d{3,9}_\d{3,9}_\d{3,9}$"  # NOQA
+        matches = re.findall(regex, url, re.MULTILINE)
+        cat_str = ''
+        if matches:
+            cat_str = matches[0]
+            cat_str = cat_str.strip('/').strip('?')
         parsed = furl(url)
         if 'grocery' in url:
             extended_uri = ''
@@ -51,6 +55,8 @@ class WalmartCategoryScraper(WalmartMixin, BaseScraper):
             return self.base_search_shelf_id_api.format(_be_shelf_id=parsed.args['_be_shelf_id'])  # NOQA
         elif 'cat_id=' in url:
             return self.base_search_api.format(cat_id=parsed.args['cat_id'])
+        elif cat_str:
+            return self.base_search_api.format(cat_id=cat_str)
         return url
 
     def process(self):
@@ -274,21 +280,3 @@ class WalmartCategoryScraper(WalmartMixin, BaseScraper):
         if not current_price:
             current_price = price_map.get('minPrice')  # "productType": "VARIANT"  # NOQA
         return current_price
-
-
-if __name__ == "__main__":
-    start = int(sys.argv[1])
-    end = int(sys.argv[2])
-    offset = int(start)
-    limit = int(end) - int(start)
-    while True:
-        try:
-            scraper = WalmartCategoryScraper(
-                supplier_id=constants.Supplier.WALMART_CODE,
-                offset=offset,
-                limit=limit
-            )
-            scraper.run()
-        except Exception as ex:
-            LOGGER.exception(str(ex), exc_info=True)
-        time.sleep(60)
