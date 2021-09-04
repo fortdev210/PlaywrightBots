@@ -1,6 +1,5 @@
 # PlayWright Bots
 
-
 ## Setup
 
 ```bash
@@ -58,25 +57,25 @@ mkdir -p logs/homedepot/
 # Run scrapers
 
 ## Start Walmart product scraper
-- Run: 
-  
+- Run:
+
   `python walmart/run_product_scraper.py active_status(0 or 1) start_range end_range`
-  
-- Example 
-  
+
+- Example
+
 `python walmart/product_scraper.py 0 0 20`
 
 ## Start Walmart category detail scraper
-- Run: 
-  
+- Run:
+
   `python walmart/run_category_scraper.py start_range end_range`
-  
-- Example 
-  
+
+- Example
+
 `python walmart/run_category_scraper.py 0 20`
 
 ## Start HomeDepot order status scraper
 
 - Run:
 
-  ``
+  `python homedepot/run_order_status_scraper.py 0 10`

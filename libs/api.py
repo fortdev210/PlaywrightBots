@@ -28,7 +28,11 @@ class StlproAPI:
         response = requests.post(
             url,
             headers=self._headers,
-            json={'data': data, 'confirmed_by': settings.CONFIRMED_BY}
+            json={
+                'data': data,
+                'confirmed_by': settings.CONFIRMED_BY,
+                'scraper_name': settings.SCRAPED_BY_BOTNAME
+            }
         )
         return response.json()
 
