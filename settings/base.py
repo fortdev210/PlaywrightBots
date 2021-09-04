@@ -1,7 +1,10 @@
+import socket
+HOST_NAME = socket.gethostname()
 
 DATETIME_FORMAT = "%Y-%m-%dT%H:%M:%S"   # 2021-08-08T01:01:01
 PLAYWRIGHT = 2  # constants.CurrentProductScrapedBy.PLAYWRIGHT
 CONFIRMED_BY = 5  # Playwright bot
+SCRAPED_BY_BOTNAME = 'PW-{}'.format(HOST_NAME)
 BASE_SCRAPED_ITEM = {
     'removed': False,
     'proxy': None,
@@ -24,5 +27,6 @@ BASE_SCRAPED_ITEM = {
     'stock_status': None,
     'url': None,
     'user_agent': None,
-    'keep_original_item': True
+    'keep_original_item': True,
+    'scraped_by_botname': SCRAPED_BY_BOTNAME,
 }
