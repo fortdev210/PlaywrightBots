@@ -90,8 +90,10 @@ class StlproAPI:
         )
         return response.json()
 
-    def get_proxy_ips(self, supplier_id):
-        url = settings.GET_PROXIES_URL.format(supplier_id=supplier_id)
+    def get_proxy_ips(self, supplier_id, batch_id='order_status'):
+        url = settings.GET_PROXIES_URL.format(
+            supplier_id=supplier_id, batch_id=batch_id
+        )
         response = requests.get(
             url,
             headers=self._headers

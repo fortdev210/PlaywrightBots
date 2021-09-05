@@ -33,7 +33,7 @@ class BaseScraper:
 
     def get_proxy(self):
         self.proxies = StlproAPI().get_proxy_ips(
-            supplier_id=self.supplier_id
+            supplier_id=self.supplier_id, batch_id=settings.SCRAPER_BATCH_ID
         )
         if not self.proxies:
             raise
