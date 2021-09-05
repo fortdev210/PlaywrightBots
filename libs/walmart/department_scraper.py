@@ -36,7 +36,8 @@ class WalmartDepartmentScraper(WalmartMixin, BaseScraper):
         except TimeoutError:
             LOGGER.error('TimeoutError')
             return
-        if self.page.is_visible('text="Verify your identity"'):
+        if self.captcha_detected():
+            LOGGER.error("[Captcha] get {}".format(self.current_proxy['ip']))
             # enable static file loading
             self.page.route(
                 re.compile(r"(\.png)|(\.jpg)|(\.svg)|(\.jpeg)|(\.js)"),
@@ -44,7 +45,6 @@ class WalmartDepartmentScraper(WalmartMixin, BaseScraper):
             )
             self.page.reload()
             self.resolve_captcha(self.current_proxy['ip'])
-            LOGGER.error("[Captcha] get {}".format(self.current_proxy['ip']))
 
         for item in self.items:
             try:
@@ -87,7 +87,6 @@ class WalmartDepartmentScraper(WalmartMixin, BaseScraper):
             LOGGER.error("[Captcha] get {}".format(item['ip']))
             return
         else:
-            LOGGER.info("[Captcha] none {}".format(item['ip']))
             self.parse(response)
 
     def update_result(self):

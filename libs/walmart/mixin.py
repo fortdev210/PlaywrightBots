@@ -1,13 +1,18 @@
 import random
-import time
 
 from settings import LOGGER
 
 
 class WalmartMixin(object):
     def captcha_detected(self):
-        time.sleep(3)
+        if 'https://www.walmart.com/blocked?' in self.page.url:
+            print('https://www.walmart.com/blocked?')
+            return True
+        if 'Verify your identity' in self.page.content():
+            print('Verify your identity')
+            return True
         if self.page.is_visible('div[class="captcha re-captcha"]'):
+            print('div[class="captcha re-captcha"]')
             return True
         return False
 
