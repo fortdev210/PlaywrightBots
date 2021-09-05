@@ -121,7 +121,7 @@ class WalmartCategoryScraper(WalmartMixin, BaseScraper):
                 self.resolve_captcha(item['ip'])
                 return
             else:
-                self.parse(response, url)
+                self.parse(response)
         item['product_count'] = self.product_count
 
     def update_result(self):
@@ -136,8 +136,8 @@ class WalmartCategoryScraper(WalmartMixin, BaseScraper):
                 product_count=item['product_count']
             )
 
-    def parse(self, response, url):
-        base_url = url.split('?')[0]
+    def parse(self, response):
+        base_url = response.url.split('?')[0]
         if base_url in constants.Supplier.WALMART_SEARCH_API:
             return self.process_search_api_data(response)
         else:

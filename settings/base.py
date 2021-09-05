@@ -5,6 +5,7 @@ DATETIME_FORMAT = "%Y-%m-%dT%H:%M:%S"   # 2021-08-08T01:01:01
 PLAYWRIGHT = 2  # constants.CurrentProductScrapedBy.PLAYWRIGHT
 CONFIRMED_BY = 5  # Playwright bot
 SCRAPED_BY_BOTNAME = 'PW-{}'.format(HOST_NAME)
+SCRAPER_BATCH_ID = '8889'
 BASE_SCRAPED_ITEM = {
     'removed': False,
     'proxy': None,
