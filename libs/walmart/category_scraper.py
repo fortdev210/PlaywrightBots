@@ -25,6 +25,12 @@ class WalmartCategoryScraper(WalmartMixin, BaseScraper):
         self.product_count = 0
         self.supplier_id = constants.Supplier.WALMART_CODE
 
+        # some category do not have more than one page of products
+        # so it's api return []
+        # so we use this flag for mark the request is success
+        # but empty in response
+        self.has_response = None
+
     def fetch_items(self):
         self.items = StlproAPI().get_category_suppliers(
             self.supplier_id, self.limit, self.offset
@@ -33,7 +39,7 @@ class WalmartCategoryScraper(WalmartMixin, BaseScraper):
 
     def build_api_url(self, item):
         url = item['url']
-        regex = r"/\d{3,9}\_\d{3,9}\?|/\d{3,9}\_\d{3,9}$|/\d{3,9}_\d{3,9}_\d{3,9}\?|\d{3,9}_\d{3,9}_\d{3,9}$|/\d{3,9}_\d{3,9}_\d{3,9}_\d{3,9}\?|/\d{3,9}_\d{3,9}_\d{3,9}_\d{3,9}$|/\d{3,9}_\d{3,9}_\d{3,9}_\d{3,9}_\d{3,9}\?|/\d{3,9}_\d{3,9}_\d{3,9}_\d{3,9}_\d{3,9}$"  # NOQA
+        regex = r"/\d{3,9}\_\d{3,9}\?|/\d{3,9}\_\d{3,9}$|/\d{3,9}_\d{3,9}_\d{3,9}\?|\d{3,9}_\d{3,9}_\d{3,9}$|/\d{3,9}_\d{3,9}_\d{3,9}_\d{3,9}\?|/\d{3,9}_\d{3,9}_\d{3,9}_\d{3,9}$|/\d{3,9}_\d{3,9}_\d{3,9}_\d{3,9}_\d{3,9}\?|/\d{3,9}_\d{3,9}_\d{3,9}_\d{3,9}_\d{3,9}$|/\d{3,9}_\d{3,9}_\d{3,9}_\d{3,9}_\d{3,9}_\d{3,9}\?|/\d{3,9}_\d{3,9}_\d{3,9}_\d{3,9}_\d{3,9}_\d{3,9}$"  # NOQA
         matches = re.findall(regex, url, re.MULTILINE)
         cat_str = ''
         if matches:
@@ -100,6 +106,8 @@ class WalmartCategoryScraper(WalmartMixin, BaseScraper):
         start_url = self.build_api_url(item)
         self.paginate_urls = []
         self.product_count = 0
+        item['has_response'] = False
+        self.has_response = False  # reset flag
         self.paginate_urls.append(start_url)
 
         while self.paginate_urls:
@@ -123,20 +131,23 @@ class WalmartCategoryScraper(WalmartMixin, BaseScraper):
             else:
                 self.parse(response)
         item['product_count'] = self.product_count
+        item['has_response'] = self.has_response
 
     def update_result(self):
-        if not self.total_item or not self.items:
-            return
-        self.update_scraped_results()
         for item in self.items:
-            if not item['product_count']:
+            if not item.get('has_response', False):
                 continue
             StlproAPI().update_product_count(
                 category_supplier_id=item['id'],
                 product_count=item['product_count']
             )
 
+        if not self.total_item or not self.items:
+            return
+        self.update_scraped_results()
+
     def parse(self, response):
+        self.has_response = True  # set flag if successful fetch
         base_url = response.url.split('?')[0]
         if base_url in constants.Supplier.WALMART_SEARCH_API:
             return self.process_search_api_data(response)
@@ -177,6 +188,11 @@ class WalmartCategoryScraper(WalmartMixin, BaseScraper):
                     quantity_limit = 12
                 else:
                     quantity_limit = 99
+                brands = row.get('brand')
+                if brands:
+                    brand = brands[0]
+                else:
+                    brand = ''
                 result.update({
                     'proxy': self.current_proxy['ip'],
                     'item_id': row['usItemId'],
@@ -187,7 +203,7 @@ class WalmartCategoryScraper(WalmartMixin, BaseScraper):
                     'saving_amount': savings_amount,
                     'saving_percent': savings_percent,
                     'in_stock_for_shipping': in_stock_for_shipping,
-                    'brand': row.get('brand', [])[0],
+                    'brand': brand,
                     'quantity_limit': quantity_limit,
                     'is_limited_qty': is_limited_qty,
                     'quantity': row['quantity'],  # quantity_available

@@ -18,8 +18,8 @@ UPDATE_EMAIL_STATUS = BASE_URL + "v2/email_supplier_verify/"
 UPDATE_ACCOUNT_STATUS = BASE_URL + "v2/account_supplier_verify/"
 
 GET_CURRENT_PRODUCT_URL = BASE_URL + "v2/current_product/get_item_for_scrape/?use_scraped_url={active}&limit={limit}&offset={offset}&supplier_id={supplier_id}&active={active}"  # NOQA
-IMPORT_CURRENT_PRODUCT_SCRAPED_DATA_URL = BASE_URL + \
-    "admin/login/?next=/history/import_current_product_scraped_data/"
+ADMIN_LOGIN_PAGE = BASE_URL + "admin/login/"
+IMPORT_CURRENT_PRODUCT_SCRAPED_DATA_URL = BASE_URL + "history/import_current_product_scraped_data/"
 GET_CATEGORY_SUPPLIER_URL = BASE_URL + \
     'v2/category_supplier/?supplier={supplier_id}&limit={limit}&offset={offset}'
 UPDATE_CATEGORY_SUPPLIER_URL = BASE_URL + \
