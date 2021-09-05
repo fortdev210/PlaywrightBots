@@ -122,9 +122,12 @@ class WalmartDepartmentScraper(WalmartMixin, BaseScraper):
                 sub_category_name = '{} / {} / {}'.format(
                     department_name, category['title'], sub_category['title']
                 )
-                sub_category_url = '{}{}'.format(
-                    constants.Supplier.WALMART_BASE_URL, sub_category['url']
-                )
+                if constants.Supplier.WALMART_BASE_URL not in sub_category['url']:  # NOQA
+                    sub_category_url = '{}{}'.format(
+                        constants.Supplier.WALMART_BASE_URL, sub_category['url']  # NOQA
+                    )
+                else:
+                    sub_category_url = sub_category['url']
                 item = {
                     'name': sub_category_name,
                     'supplier': self.supplier_id

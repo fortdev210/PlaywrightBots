@@ -8,6 +8,7 @@ from playwright.sync_api import sync_playwright
 
 import settings
 from libs.exception import CaptchaResolveException
+from libs.utils import split_to_chunks
 from settings import (
     LOGGER,
     BUY_PROXIES_PASSWORD, BUY_PROXIES_USERNAME
@@ -95,7 +96,7 @@ class BaseScraper:
         if not self.results:
             return False
         self.page.goto(
-            settings.IMPORT_CURRENT_PRODUCT_SCRAPED_DATA_URL,
+            settings.ADMIN_LOGIN_PAGE,
             timeout=60000
         )
         # login
@@ -106,24 +107,32 @@ class BaseScraper:
         end_time = datetime.utcnow()
         start_time_str = self.start_time.strftime(settings.DATETIME_FORMAT)
         end_time_str = end_time.strftime(settings.DATETIME_FORMAT)
-        file_name = f'{start_time_str}_{end_time_str}_{self.total_item}.txt'
-        # fill form
-        self.page.select_option("select[id=id_last_scraped_by]", str(settings.PLAYWRIGHT))  # NOQA
-        self.page.select_option("select[id=id_supplier]", self.supplier_id)
-        buffer = '\n'.join([json.dumps(row) for row in self.results])
-        # Upload buffer from memory
-        self.page.set_input_files(
-            "input[id=id_file]",
-            files=[
-                {
-                    "name": file_name, "mimeType": "text/plain",
-                    "buffer": buffer.encode()
-                }
-            ],
-        )
-        self.page.click('button[class="btn btn-outline-primary"]')
-        self.page.wait_for_timeout(random.randint(3000, 5000))
-        print(self.page.url)
+        chunks = split_to_chunks(self.results, chunk_size=200)
+        index = 0
+        for chunk in chunks:
+            self.page.goto(
+                settings.IMPORT_CURRENT_PRODUCT_SCRAPED_DATA_URL,
+                timeout=60000
+            )
+            file_name = f'{start_time_str}_{end_time_str}_{self.total_item}_{index}.txt'  # NOQA
+            # fill form
+            self.page.select_option("select[id=id_last_scraped_by]", str(settings.PLAYWRIGHT))  # NOQA
+            self.page.select_option("select[id=id_supplier]", self.supplier_id)
+            buffer = '\n'.join([json.dumps(row) for row in chunk])
+            # Upload buffer from memory
+            self.page.set_input_files(
+                "input[id=id_file]",
+                files=[
+                    {
+                        "name": file_name, "mimeType": "text/plain",
+                        "buffer": buffer.encode()
+                    }
+                ],
+            )
+            self.page.click('button[class="btn btn-outline-primary"]')
+            self.page.wait_for_timeout(random.randint(3000, 5000))
+            LOGGER.info(self.page.url)
+            index += 1
 
     def run(self):
         LOGGER.debug('Starting: %s' % self.__class__.__name__)

@@ -102,3 +102,11 @@ def get_json_value_by_key_safely(data, keylist):
             data = data.get(key, None)
 
     return data
+
+
+def split_to_chunks(items, chunk_size=15):
+    result = []
+    for i in range(0, len(items), chunk_size):
+        result.append(items[i:i + chunk_size])
+
+    return result
