@@ -6,7 +6,9 @@ from settings import LOGGER, WALMART_PASSWORD, WALMART_OLD_PASSWORDS
 from settings.url import (
     WALMART_REG_LINK,
     WALMART_ACCOUNT_LINK, WALMART_ORDER_HISTORY_LINK,
-    WALMART_CART_LINK, WALMART_REGISTRY_LINK, WALMART_PAYMENT_METHODS_LINK)
+    WALMART_CART_LINK, WALMART_REGISTRY_LINK, WALMART_PAYMENT_METHODS_LINK,
+    WALMART_TRACKORDER_LINK
+)
 
 
 class WalmartBase(WalmartMixin, BotManager):
@@ -103,6 +105,9 @@ class WalmartBase(WalmartMixin, BotManager):
 
     def open_order_history(self):
         self.go_to_link(WALMART_ORDER_HISTORY_LINK)
+
+    def open_trackorder_page(self):
+        self.go_to_link(WALMART_TRACKORDER_LINK)
 
     def open_cart_page(self):
         self.go_to_link(WALMART_CART_LINK)

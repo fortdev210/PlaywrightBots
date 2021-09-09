@@ -41,4 +41,5 @@ class Supplier:
         {'url': 'https://www.walmart.com/cp/sports-and-outdoors/4125'},
         {'url': 'https://www.walmart.com/cp/toys/4171'},
         {'url': 'https://www.walmart.com/cp/Home-Improvement/1072864'},
+        {'url': 'https://www.walmart.com/cp/health/976760'},
     ]
