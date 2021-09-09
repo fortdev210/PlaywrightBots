@@ -86,11 +86,11 @@ mkdir -p logs/homedepot/
 - After successful scrape, the scrape will create result file at `logs/walmart/department_scraped_result_(date time).json`
 - Copy this result and create Category scraper from shell
 ``` python
-    for item in items:
-        exist = CategorySupplier.objects.filter(url=item['url'], supplier_id=item['supplier']).first()
-        if exist:
-            continue
-        else:
-            CategorySupplier.objects.create(url=item['url'], supplier_id=item['supplier'], name=item['name'], auto_update_enabled=True)
-
+for item in items:
+    exist = CategorySupplier.objects.filter(url=item['url'], supplier_id=item['supplier']).first()
+    if exist:
+        continue
+    else:
+        CategorySupplier.objects.create(url=item['url'], supplier_id=item['supplier'], name=item['name'], auto_update_enabled=True)
+        print(item['url'])
 ```
