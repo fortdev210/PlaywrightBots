@@ -17,6 +17,44 @@ class WalmartCancelExtraItem(WalmartBase):
         self.main_item_number = self.order.get(
             'items')[0].get('supplier_item_id')
 
+    def handle_new_walmart(self):
+        self.wait_element_loading('text=View details')
+        self.click_element('text=View details')
+        self.wait_element_loading('text=Shipping')
+
+        content = """
+            () => {
+                let states = []
+                const items = document.querySelectorAll(
+                    '[class*="flex-column order-0"]')
+                for (let item of items) {
+                    states.push(item.innerText.replace('\n','').replace('Shipping',''))
+                }
+                return items[0].innerText
+        }
+        """
+        item_states = self.page.evaluate(content)
+
+        href_content = """
+            () => {
+                let numbers = []
+                const items = document.querySelectorAll(
+                    '[link-identifier="itemClick"]')
+                for (let item of items) {
+                    numbers.push(item.href.split('/').slice(-1)[0])
+                }
+                return numbers
+        }
+        """
+        item_numbers = self.page.evaluate(href_content)
+        print(item_numbers)
+
+        extra_item_status_text = item_states[item_numbers.index(
+            self.extra_item_number)]
+        main_item_status_text = item_states[item_numbers.index(
+            self.main_item_number)]
+        print(main_item_status_text, extra_item_status_text)
+
     def run(self):
         self.get_item_numbers()
         try:
@@ -28,6 +66,12 @@ class WalmartCancelExtraItem(WalmartBase):
                 raise CaptchaResolveException()
 
             self.open_order_history()
+            self.sleep(3)
+            current_link = self.page.url
+
+            if current_link == 'https://www.walmart.com/orders':
+                LOGGER.info('New Walmart Page...')
+                self.handle_new_walmart()
             extra_item_status = self.cancel_extra_item(self.extra_item_number)
             main_item_status = self.get_item_status(self.main_item_number)
             LOGGER.info("Main Item Status: %s", main_item_status)
@@ -47,5 +91,6 @@ class WalmartCancelExtraItem(WalmartBase):
         except CaptchaResolveException:
             LOGGER.error('Cant resolve captcha.Try with another proxy later.')
             self.close_browser()
-        except Exception:
+        except Exception as e:
+            print(e)
             LOGGER.error('Failed: %s', self.order.get('id'))
