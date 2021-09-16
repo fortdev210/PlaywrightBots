@@ -51,10 +51,13 @@ class WalmartOrderStatus(WalmartBase):
             self.order['supplier_order_numbers_str'],
             delay=200
         )
-        with self.page.expect_event("requestfinished") as event_info:
-            self.page.keyboard.press("Enter")
-        request = event_info.value
-        self.get_order_data(request)
+        self.page.keyboard.press("Enter")
+        count = 0
+        while count <= 10 and self.data is None:
+            event = self.page.wait_for_event('requestfinished')
+            self.get_order_data(event)
+            count += 1
+
         # resolve captcha
         if self.captcha_detected():
             LOGGER.error("[Captcha] get {}".format(self.proxy_ip))
