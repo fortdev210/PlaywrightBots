@@ -81,95 +81,72 @@ class WalmartProductScraper(WalmartMixin, BaseScraper):
             LOGGER.debug(result)
             return result
 
-        leading = ["tb-djs-wml-redux-state\" type=\"application/json\">"]
+        leading = ['<script id="__NEXT_DATA__" type="application/json"']  # NOQA
         trailing = "</script>"
         json_string = find_value_by_markers(
             response, leading, trailing
         )
 
-        if not json_string:
-            leading = ['item" type="application/json">']
-            trailing = "</script>"
-            json_string = find_value_by_markers(
-                response, leading, trailing
-            )
-        if not json_string:
-            leading = [
-                'item" class="tb-optimized" type="application/json">']  # NOQA
-            trailing = "</script>"
-            json_string = find_value_by_markers(
-                response, leading, trailing
-            )
-
         walmart_seller_id = find_value_by_markers(response, ['"walmartSellerId":"'], '","')  # NOQA
         if not walmart_seller_id:
             walmart_seller_id = constants.Supplier.WALMART_SELLER_ID  # Some item doesn't return walmartSellerId  # NOQA
         if json_string and walmart_seller_id:
+            json_string = json_string.split('>', 1)[1]
             data = json.loads(json_string)
-            item_id = self.get_product_id(data)
-            product = self.get_product_object(item_id, data)
+            product = data['props']['pageProps']['initialData']['data']['product']  # NOQA
             in_stock_for_shipping = self.get_in_stock_status(
                 response, product, walmart_seller_id
             )
-            try:
-                quantity_limit = product.get('maxQuantity')
-            except Exception:
-                quantity_limit = None
+            quantity_limit = product.get('orderLimit')
             if quantity_limit and quantity_limit >= 12:
                 quantity_limit = 99
 
             if not in_stock_for_shipping:
                 result.update({
                     'proxy': proxy_ip,
-                    'item_id': self.get_product_id(data),
-                    'product_key': self.get_product_key(data),
+                    'item_id': product['usItemId'],
                     'original_item_id': item_id,
                     'in_stock_for_shipping': False,
                     'quantity_limit': quantity_limit,
-                    'stock_status': response.headers.get('stockstatus'),
                     'url': response.request.url,
-                    'user_agent': response.request.headers.get('User-Agent')
+                    'user_agent': None
                 })
                 LOGGER.debug(result)
                 return result
 
-            if not product.get('priceMap'):
+            if not product.get('priceInfo'):
                 current_price = None
                 savings_amount = None
                 savings_percent = None
             else:
-                current_price = product['priceMap']['price']
-                list_price = self.get_list_price(product['priceMap'])
+                current_price = product['priceInfo']['currentPrice']['price']
+                list_price = self.get_list_price(product['priceInfo'])
                 savings_amount = list_price - current_price
                 savings_amount = round(savings_amount, 3)
                 savings_percent = None
                 if (current_price is not None) and (savings_amount is not None):  # NOQA
-                    savings_percent = round(
-                        float(savings_amount) / list_price, 2
-                    )
+                    savings_percent = round(float(savings_amount) / list_price, 2)  # NOQA
 
             result.update({
                 'proxy': proxy_ip,
-                'item_id': self.get_product_id(data),
-                'product_key': self.get_product_key(data),
+                'item_id': item_id,
                 'original_item_id': item_id,
-                'description': product.get('productName'),
-                'upc': product.get('upc'),
+                'description': product['name'],
+                'upc': product['upc'],
                 'price': current_price,
                 'saving_amount': savings_amount,
                 'saving_percent': savings_percent,
                 'in_stock_for_shipping': in_stock_for_shipping,
-                'brand': product.get('brandName'),
-                'model': product.get('model'),
+                'brand': product['brand'],
+                'model': product['model'],
                 'shipping_surcharge': None,
                 'quantity_limit': quantity_limit,
-                'quantity': None,  # quantity_available
-                'categories': product['path'],
-                'specials': product['priceFlagsList'],
+                'categories': product['category'].get('path'),
+                'specials': None,
+                'quantity': None,
                 'seller_name': product['sellerDisplayName'],
-                'stock_status': response.headers.get('stockstatus'),
                 'url': response.request.url,
-                'user_agent': response.request.headers.get('User-Agent')
+                'user_agent': None,  # NOQA
             })
             LOGGER.debug(result)
             return result
@@ -180,13 +157,10 @@ class WalmartProductScraper(WalmartMixin, BaseScraper):
         if not list_price:
             list_price = price_map.get('wasPrice')
         if not list_price:
-            list_price = price_map.get('price')
-        return list_price
-
-    def get_product_id(self, data):
-        keylist = self.start_key + ['productId']
-        result = get_json_value_by_key_safely(data, keylist)
-        return result
+            list_price = price_map.get('currentPrice')
+        if list_price:
+            list_price = list_price.get('price')
+            return list_price
 
     def get_product_object(self, item_id, data):
         keylist = self.start_key + ['product', 'buyBox', 'products']
@@ -197,11 +171,6 @@ class WalmartProductScraper(WalmartMixin, BaseScraper):
             if item_id == product.get('usItemId'):
                 return product
         return None
-
-    def get_product_key(self, data):
-        keylist = self.start_key + ['product', 'buyBox', 'primaryUsItemId']
-        result = get_json_value_by_key_safely(data, keylist)
-        return result
 
     @staticmethod
     def get_in_stock_status(response, product, walmart_seller_id):
@@ -216,6 +185,9 @@ class WalmartProductScraper(WalmartMixin, BaseScraper):
             return False
         urgent_quantity = product.get('urgentQuantity')
         if urgent_quantity:
+            return False
+        seller_type = product.get('sellerType')
+        if seller_type == 'EXTERNAL':
             return False
         product_availability = product.get('availabilityStatus')
         in_stock = product_availability == 'IN_STOCK'
