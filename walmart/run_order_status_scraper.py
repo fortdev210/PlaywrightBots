@@ -29,6 +29,11 @@ if __name__ == '__main__':
                 use_chrome=False, use_luminati=False, use_proxy=True,
                 proxy_ip=proxy_ip, proxy_port=proxy_port, order=order
             )
-            bot.run()
+            try:
+                bot.run()
+            except Exception as ex:
+                LOGGER.exception(ex, exc_info=True)
+            finally:
+                bot.close_browser()
             LOGGER.info('')
         time.sleep(5*60)

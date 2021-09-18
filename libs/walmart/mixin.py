@@ -6,13 +6,16 @@ from settings import LOGGER
 class WalmartMixin(object):
     def captcha_detected(self):
         if 'https://www.walmart.com/blocked?' in self.page.url:
-            print('https://www.walmart.com/blocked?')
+            LOGGER.info('https://www.walmart.com/blocked?')
             return True
         if 'Verify your identity' in self.page.content():
-            print('Verify your identity')
+            LOGGER.info('Verify your identity')
+            return True
+        if 'Account Verification' in self.page.content():
+            LOGGER.info('Account Verification')
             return True
         if self.page.is_visible('div[class="captcha re-captcha"]'):
-            print('div[class="captcha re-captcha"]')
+            LOGGER.info('div[class="captcha re-captcha"]')
             return True
         return False
 

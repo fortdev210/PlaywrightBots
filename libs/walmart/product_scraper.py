@@ -40,6 +40,7 @@ class WalmartProductScraper(WalmartMixin, BaseScraper):
             url = item['url']
             if not url:
                 url = 'https://www.walmart.com/ip/{}'.format(item['item_id'])
+            LOGGER.debug(url)
             rep = self.page.goto(url, wait_until="domcontentloaded")
             self.page.wait_for_selector('text=Walmart')
         except TimeoutError:
@@ -109,7 +110,8 @@ class WalmartProductScraper(WalmartMixin, BaseScraper):
                     'in_stock_for_shipping': False,
                     'quantity_limit': quantity_limit,
                     'url': response.request.url,
-                    'user_agent': None
+                    'user_agent': None,
+                    'keep_original_item': False,
                 })
                 LOGGER.debug(result)
                 return result
@@ -129,7 +131,7 @@ class WalmartProductScraper(WalmartMixin, BaseScraper):
 
             result.update({
                 'proxy': proxy_ip,
-                'item_id': item_id,
+                'item_id': product['usItemId'],
                 'original_item_id': item_id,
                 'description': product['name'],
                 'upc': product['upc'],
@@ -147,6 +149,7 @@ class WalmartProductScraper(WalmartMixin, BaseScraper):
                 'seller_name': product['sellerDisplayName'],
                 'url': response.request.url,
                 'user_agent': None,  # NOQA
+                'keep_original_item': False,
             })
             LOGGER.debug(result)
             return result
