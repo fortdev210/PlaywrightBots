@@ -21,37 +21,45 @@ class WalmartCancelExtraItem(WalmartBase):
         self.wait_element_loading('text=View details')
         self.click_element('text=View details')
         self.wait_element_loading('text=Shipping')
-
-        content = """
-            () => {
-                let states = []
-                const items = document.querySelectorAll(
-                    '[class*="flex-column order-0"]')
-                for (let item of items) {
-                    states.push(item.innerText.replace('Shipping',''))
-                }
-                return states
-        }
-        """
-        item_states = self.page.evaluate(content)
-
-        href_content = """
-            () => {
-                let numbers = []
-                const items = document.querySelectorAll(
-                    '[link-identifier="itemClick"]')
-                for (let item of items) {
-                    numbers.push(item.href.split('/').slice(-1)[0])
-                }
-                return numbers
-        }
-        """
-        item_numbers = self.page.evaluate(href_content)
-
-        extra_item_status_text = item_states[item_numbers.index(
-            self.extra_item_number)].strip()
-        main_item_status_text = item_states[item_numbers.index(
-            self.main_item_number)].strip()
+        main_item_status_text = ''
+        extra_item_status_text = ''
+        try:
+            content = """
+                () => {
+                    let states = []
+                    const items = document.querySelectorAll(
+                        '[class*="flex-column order-0"]')
+                    for (let item of items) {
+                        states.push(item.innerText.replace('Shipping',''))
+                    }
+                    return states
+            }
+            """
+            item_states = self.page.evaluate(content)
+            print("item states", item_states)
+            href_content = """
+                () => {
+                    let numbers = []
+                    const items = document.querySelectorAll(
+                        '[link-identifier="itemClick"]')
+                    for (let item of items) {
+                        numbers.push(item.href.split('/').slice(-1)[0])
+                    }
+                    return numbers
+            }
+            """
+            item_numbers = self.page.evaluate(href_content)
+            print("item numbers", item_numbers)
+            extra_item_status_text = item_states[item_numbers.index(
+                self.extra_item_number)].strip()
+            main_item_status_text = item_states[item_numbers.index(
+                self.main_item_number)].strip()
+        except IndexError:
+            try:
+                self.wait_element_loading('text=canceled')
+                extra_item_status_text = 'canceled'
+            except Exception:
+                pass
         LOGGER.info("Extra Item Status: %s", extra_item_status_text)
 
         if 'Arrives by' in extra_item_status_text:
@@ -118,5 +126,6 @@ class WalmartCancelExtraItem(WalmartBase):
             LOGGER.error('Cant resolve captcha.Try with another proxy later.')
             self.close_browser()
         except Exception as e:
+            self.close_browser()
             print(e)
             LOGGER.error('Failed: %s', self.order.get('id'))
