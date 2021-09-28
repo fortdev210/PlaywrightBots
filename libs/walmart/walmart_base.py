@@ -45,17 +45,19 @@ class WalmartBase(WalmartMixin, BotManager):
         self.click_element('[data-automation-id="signin-submit-btn"]')
 
     def signin_walmart(self, email):
-        self.wait_element_loading('[id="sign-in-form"]')
-        self.insert_value('[id="email"]', email)
         try:
+            self.wait_element_loading('[id="sign-in-with-email-validation"]')
+            LOGGER.info('New Signin Page')
+            self.insert_value('[id="email"]', email)
             self.wait_element_loading(
                 '[data-automation-id="signin-continue-submit-btn"]')
-            LOGGER.info('New Signin Page')
             self.press_enter()
             self.insert_value('[id="password"]', WALMART_PASSWORD)
             self.press_enter()
         except Exception:
             LOGGER.info('Old Signin Page')
+            self.insert_value('[id="email"]', email)
+            self.wait_element_loading('[id="sign-in-form"]')
             self.insert_value('[id="password"]', WALMART_PASSWORD)
             self.click_element('[data-automation-id="signin-submit-btn"]')
             try:
