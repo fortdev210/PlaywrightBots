@@ -24,7 +24,7 @@ class WalmartOrderStatus(WalmartBase):
 
     def get_order_data(self, request):
 
-        if 'account/electrode/account/api/v2/trackorder' not in request.url:
+        if 'https://www.walmart.com/orchestra/home/graphql' not in request.url:
             return None
         self.data = request.response().json()
 
@@ -35,26 +35,29 @@ class WalmartOrderStatus(WalmartBase):
             LOGGER.error("[Captcha] get {}".format(self.proxy_ip))
             raise BotDetectionException()
         # fill order number
-        self.page.wait_for_selector("input[id=email]")
-        self.page.click("input[id=email]")
+        self.page.wait_for_selector("input[name=emailAddress]")
+        self.page.focus("input[name=emailAddress]")
         self.page.type(
-            "input[id=email]",
+            "input[name=emailAddress]",
             self.order['user_email'],
             delay=200
         )
 
         # fill email
-        self.page.wait_for_selector("input[id=fullOrderId]")
-        self.page.click("input[id=fullOrderId]")
+        self.page.wait_for_selector("input[name=orderNumber]")
+        self.page.focus("input[name=orderNumber]")
         self.page.type(
-            "input[id=fullOrderId]",
+            "input[name=orderNumber]",
             self.order['supplier_order_numbers_str'],
             delay=200
         )
-        with self.page.expect_event("requestfinished") as event_info:
-            self.page.keyboard.press("Enter")
-        request = event_info.value
-        self.get_order_data(request)
+        self.page.keyboard.press("Enter")
+        count = 0
+        while count <= 10 and self.data is None:
+            event = self.page.wait_for_event('requestfinished')
+            self.get_order_data(event)
+            count += 1
+
         # resolve captcha
         if self.captcha_detected():
             LOGGER.error("[Captcha] get {}".format(self.proxy_ip))
@@ -64,40 +67,38 @@ class WalmartOrderStatus(WalmartBase):
             raise Exception("Can not parse shipment info")
 
         # Fetch tracking info an repopulate payload
-        super_groups = self.data['payload']['order'].pop('superGroups', [])
+        super_groups = self.data['data']['guestOrder'].pop('groups_2101', [])
         groups = []
         for group in super_groups:
-            shipments = []
-            for shipment in group['shipments']:
-                trackings = shipment.get('tracking')
-                if not trackings:
-                    shipments.append(shipment)
-                    continue
-                tracking = trackings[0]
-                tracking['tracking']['carrier'] = None
-                external_url = tracking.get('tracking').get('externalUrl')
-                if external_url:
-                    parsed = furl(external_url)
-                    content = '''([x]) => {return fetch('/api/tracking?trackingId=%s&orderId=%s', {method: 'GET', headers: {'Version': 'HTTP/1.0', 'Accept': 'application/json','Content-Type': 'application/json'}}).then(res => res.json());}'''  # NOQA
-                    content = content % (parsed.args['tracking_id'], parsed.args['order_id'])  # NOQA
-                    tracking_info = self.page.evaluate(content, [None])
-                    if tracking_info:
-                        tracking['tracking']['carrier'] = tracking_info['carrier']  # NOQA
-                shipment['tracking'] = [tracking]  # FIXME: maybe shipment has more than one tracking  # NOQA
-                shipments.append(shipment)
-            group['shipments'] = shipments
+            shipment = group.get('shipment')
+            if shipment:
+                tracking_number = shipment.get('trackingNumber')
+                if tracking_number:
+                    tracking_url = shipment.get('trackingUrl')
+                    if tracking_url:
+                        parsed = furl(tracking_url)
+                        content = '''([x]) => {return fetch('/api/tracking?trackingId=%s&orderId=%s', {method: 'GET', headers: {'Version': 'HTTP/1.0', 'Accept': 'application/json','Content-Type': 'application/json'}}).then(res => res.json());}'''  # NOQA
+                        content = content % (parsed.args['tracking_id'], parsed.args['order_id'])  # NOQA
+                        tracking_info = self.page.evaluate(content, [None])
+                        if tracking_info:
+                            shipment['trackingCarrier'] = tracking_info['carrier']  # NOQA
             groups.append(group)
-        self.data['payload']['order']['superGroups'] = groups
+        self.data['data']['guestOrder']['groups_2101'] = groups
+        # LOGGER.info(json.dumps(self.data))
         return json.dumps(self.data)
 
     def run(self):
         counter = 0
         self.create_browser()
         self.open_new_page()
-        data = None
         while counter <= 5:
             try:
                 data = self.try_to_scrape_walmart_order()
+                if data:
+                    result = self.api.update_ds_order(self.order['id'], data)
+                    LOGGER.info(result)
+                    if result.get('status') != 'success':
+                        LOGGER.info(data)
             except BotDetectionException:
                 captcha_detected = self.resolve_captcha(self.proxy_ip)
                 if captcha_detected:
@@ -110,11 +111,4 @@ class WalmartOrderStatus(WalmartBase):
                 break
             else:
                 break
-        if data:
-            result = self.api.update_ds_order(self.order['id'], data)
-            LOGGER.info(result)
-            if result.get('status') != 'success':
-                LOGGER.info(data)
-
-        self.close_browser()
         self.sleep(5)
