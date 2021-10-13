@@ -110,3 +110,12 @@ def split_to_chunks(items, chunk_size=15):
         result.append(items[i:i + chunk_size])
 
     return result
+
+
+def clean_number(string):
+    number = re.sub('[^0-9.]', '', string)
+    if not number:
+        number = None
+    else:
+        number = float(number)
+    return number
