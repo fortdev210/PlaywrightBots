@@ -1,3 +1,4 @@
+import json
 import random
 import re
 import traceback
@@ -9,6 +10,7 @@ from playwright._impl._api_types import TimeoutError
 import constants
 import settings
 from libs.exception import CaptchaResolveException
+from libs.utils import find_value_by_markers, clean_number
 from libs.walmart.mixin import WalmartMixin
 from settings import LOGGER
 from libs.base_scraper import BaseScraper
@@ -155,39 +157,54 @@ class WalmartCategoryScraper(WalmartMixin, BaseScraper):
             return self.process_grocery_api_data(response)
 
     def process_search_api_data(self, response):
-        data = response.json()
-        base_url = response.request.url.split('?')[0]
-        rows = data['items']
-        next_page = data.get('pagination', {}).get('next', {}).get('url')
-        if next_page:
-            next_url = '{}?{}'.format(base_url, next_page)
-            self.paginate_urls.append(next_url)
+        leading = ['<script id="__NEXT_DATA__" type="application/json"']  # NOQA
+        trailing = "</script>"
+        json_string = find_value_by_markers(
+            response, leading, trailing
+        )
+        json_string = json_string.split('>', 1)[1]
+        data = json.loads(json_string)
+        rows = data['props']['pageProps']['initialData']['searchResult']['itemStacks'][0]['items']  # NOQA
+        max_page = data['props']['pageProps']['initialData']['searchResult']['paginationV2']['maxPage']  # NOQA
+        if max_page:
+            url_parsed = furl(response.request.url)
+            current_page = int(url_parsed.args['page'])
+            if current_page < max_page:
+                url_parsed.args['page'] = current_page + 1
+                next_url = url_parsed.url
+                self.paginate_urls.append(next_url)
 
         for row in rows:
+            typename = row.get('__typename')
+            if typename != 'Product':
+                LOGGER.error(row)
+                LOGGER.error("This item is not a product!")
+                continue
             try:
                 result = deepcopy(settings.BASE_SCRAPED_ITEM)
                 # variants = row.get('variants', {}).get('variantData')
                 # if variants:
                 #     variant = variants[0]
-                available_online = row.get('inventory', {}).get('availableOnline', False)  # NOQA
-                current_price = None
+                available_online = not row.get('isOutOfStock')
+                current_price = row.get('price')
                 savings_amount = None
                 savings_percent = None
-                if row.get('primaryOffer') and available_online:
-                    current_price = self.get_price(row['primaryOffer'])
-                    list_price = self.get_list_price(row['primaryOffer'])
-                    if list_price is None:
+                if row.get('priceInfo') and available_online:
+                    if not current_price:
+                        current_price = self.get_new_price(row['priceInfo'])
+                    list_price = self.get_new_list_price(row['priceInfo'])
+                    if not list_price:
                         list_price = current_price
-                    if current_price is not None:
-                        savings_amount = list_price - current_price
-                        savings_amount = round(savings_amount, 3)
-                        savings_percent = round(float(savings_amount) / list_price, 2)  # NOQA
+                    savings_amount = list_price - current_price
+                    savings_percent = round(savings_amount / list_price, 2)  # NOQA
                 in_stock_for_shipping = available_online
-                is_limited_qty = row['is_limited_qty']
-                if is_limited_qty:
-                    quantity_limit = 12
-                else:
-                    quantity_limit = 99
+                # is_limited_qty = row.get('is_limited_qty')
+                # if is_limited_qty:
+                #     quantity_limit = 12
+                # else:
+                #     quantity_limit = 99
+                is_limited_qty = True  # FIXME not parsed yet
+                quantity_limit = 12  # FIXME not parsed yet
                 brands = row.get('brand')
                 if brands:
                     brand = brands[0]
@@ -197,8 +214,8 @@ class WalmartCategoryScraper(WalmartMixin, BaseScraper):
                     'proxy': self.current_proxy['ip'],
                     'item_id': row['usItemId'],
                     'original_item_id': row['usItemId'],
-                    'description': row['title'],
-                    'upc': row['standardUpc'][0],
+                    'description': row['name'],
+                    'upc': None,
                     'price': current_price,
                     'saving_amount': savings_amount,
                     'saving_percent': savings_percent,
@@ -206,15 +223,16 @@ class WalmartCategoryScraper(WalmartMixin, BaseScraper):
                     'brand': brand,
                     'quantity_limit': quantity_limit,
                     'is_limited_qty': is_limited_qty,
-                    'quantity': row['quantity'],  # quantity_available
+                    'quantity': row.get('quantity'),  # quantity_available
                     'specials': row.get('specialOfferText'),
                     'seller_name': row['sellerName'],
-                    'url': 'https://www.walmart.com' + row['productPageUrl'],
+                    'url': 'https://www.walmart.com' + row['canonicalUrl'],
                 })
                 LOGGER.info(result)
                 self.results.append(result)
                 self.product_count += 1
             except Exception as ex:
+                LOGGER.exception(row)
                 LOGGER.exception(msg=str(ex), exc_info=True)
                 continue
 
@@ -240,7 +258,7 @@ class WalmartCategoryScraper(WalmartMixin, BaseScraper):
                 result = deepcopy(settings.BASE_SCRAPED_ITEM)
                 current_price = row['store']['price']['displayPrice']
                 list_price = row['store']['price']['list']
-                savings_amount = list_price - current_price
+                savings_amount = round(list_price - current_price, 2)
                 savings_amount = round(savings_amount, 3)
                 savings_percent = None
                 if (current_price is not None) and (savings_amount is not None):  # NOQA
@@ -290,8 +308,24 @@ class WalmartCategoryScraper(WalmartMixin, BaseScraper):
             list_price = price_map.get('minPrice')  # "productType": "REGULAR"
         return list_price
 
+    def get_new_list_price(self, price_map):
+        list_price = price_map.get('listPrice')
+        if not list_price:
+            list_price = price_map.get('wasPrice')
+        if not list_price:
+            list_price = price_map.get('linePrice')
+        # if not list_price:
+        #     list_price = price_map.get('minPrice')  # "productType": "REGULAR"  # NOQA
+        return clean_number(list_price)
+
     def get_price(self, price_map):
         current_price = price_map.get('offerPrice')
         if not current_price:
             current_price = price_map.get('minPrice')  # "productType": "VARIANT"  # NOQA
         return current_price
+
+    def get_new_price(self, price_map):
+        current_price = price_map.get('linePrice')
+        if not current_price:
+            current_price = price_map.get('minPriceForVariant')  # "productType": "VARIANT"  # NOQA
+        return clean_number(current_price)
